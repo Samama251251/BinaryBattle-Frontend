@@ -51,7 +51,7 @@ const IDE = () => {
   };
 
   return (
-    <section className='bg-base-300 fixed w-screen h-screen'>
+    <section className='bg-base-300 fixed w-full h-full'>
       <div className='flex items-center justify-between px-4'>
         <div className='flex items-center'>
           <h1 className='text-3xl p-4 font-bold'>Finding the Shortest Path</h1>
