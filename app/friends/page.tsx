@@ -14,7 +14,6 @@ return (
             {/* Friends List */}
             <div className='flex flex-col w-3/4 h-fit bg-base-300 rounded-lg p-4'>
                 <h1 className='text-3xl font-extrabold mb-10'>Friends</h1>
-    
                 <div className='flex flex-col gap-4'>
                     <div className='flex items-center gap-4 justify-between'>
                         {/* One particular Friend */}
