@@ -19,7 +19,7 @@ const config: Config = {
   ],
 
   daisyui: {
-    themes: ["forest", "light"],
+    themes: ["dracula", "bumblebee"],
   }
 };
 export default config;
