@@ -1,11 +1,11 @@
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { PrismaClient } from "@prisma/client";
-import { NextAuthOptions } from "next-auth";
 
-const prisma = new PrismaClient();
+const prisma =new PrismaClient();
 
-const authOptions = {
+
+export const authOptions = {
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID,
@@ -13,29 +13,28 @@ const authOptions = {
     }),
   ],
   callbacks: {
-    // Sign-in callback to handle user creation and database sync
     async signIn({ user, account, profile }) {
-      if (!user.email) {
+      if (!user?.email) {
         console.error("User email is not available");
         return false;
       }
 
       try {
-        // Check if the user already exists in the PostgreSQL database
-        let existingUser = await prisma.user.findUnique({
+        const existingUser = await prisma.api_user.findUnique({
           where: {
             email: user.email,
           },
         });
 
-        // If the user doesn't exist, create a new user
         if (!existingUser) {
-          existingUser = await prisma.user.create({
+          const username = user.email.split("@")[0];
+          await prisma.api_user.create({
             data: {
+              username: username, // This is the @id field
               email: user.email,
-              name: user.name,
-              username: user.email.split("@")[0], // Use the part before '@' as username
-              rank: "Newbie", // Set default rank
+              name: user.name || username,
+              rank: "Newbie",
+              score: 0,
             },
           });
         }
@@ -47,35 +46,37 @@ const authOptions = {
       }
     },
 
-    // Session callback to handle the user session
     async session({ session, token, user }) {
-      if (session.user?.email) {
-        // Get the user from the database
-        const existingUser = await prisma.user.findUnique({
-          where: {
-            email: session.user.email,
-          },
-        });
+      if (session?.user?.email) {
+        try {
+          const existingUser = await prisma.api_user.findUnique({
+            where: {
+              email: session.user.email,
+            },
+          });
 
-        // Attach user data to session
-        if (existingUser) {
-          session.user.id = existingUser.id.toString(); // Prisma returns id as Int, convert it to string
-          session.user.name = existingUser.name;
+          if (existingUser) {
+            session.user.username = existingUser.username;
+            session.user.name = existingUser.name;
+            // Add additional fields you want to include in the session
+            session.user.rank = existingUser.rank;
+            session.user.score = existingUser.score;
+          }
+        } catch (error) {
+          console.error("Error fetching user in session callback:", error);
         }
       }
       return session;
     },
 
-    // Redirect callback to define where to redirect after login
     async redirect({ url, baseUrl }) {
-      return baseUrl; // Redirect to the homepage or dashboard
+      return `${baseUrl}/practice`;
     },
   },
   pages: {
-    signIn: '/login', // Define a custom login page
+    signIn: '/login',
   },
 };
 
 const handler = NextAuth(authOptions);
-
 export { handler as GET, handler as POST };

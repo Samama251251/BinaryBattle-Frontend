@@ -12,3 +12,75 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+model api_user {
+  username                    String              @id
+  name                       String              @db.VarChar(50)
+  email                      String              @unique
+  created_at                 DateTime            @default(now())
+  score                      Int                 @default(0) @db.SmallInt
+  rank                       String
+  
+  // Relations
+  friendship_requests_sent    Friendship[]        @relation("SenderFriendships")
+  friendship_requests_received Friendship[]       @relation("ReceiverFriendships")
+  groups                     Group[]             @relation("GroupMembers")
+  sent_messages              Message[]           @relation("SenderMessages")
+  message_read_status        MessageReadStatus[]
+
+  @@map("api_user")
+}
+
+model Friendship {
+  id         Int      @id @default(autoincrement())
+  sender     api_user     @relation("SenderFriendships", fields: [sender_id], references: [username])
+  sender_id  String
+  receiver   api_user     @relation("ReceiverFriendships", fields: [receiver_id], references: [username])
+  receiver_id String
+  status     String   @default("pending") // One of: pending, accepted, rejected, blocked
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@unique([sender_id, receiver_id])
+  @@index([sender_id])
+  @@index([receiver_id])
+  @@map("Friendship")
+}
+
+model Group {
+  id         Int       @id @default(autoincrement())
+  name       String    @db.VarChar(255)
+  created_at DateTime  @default(now())
+  members    api_user[]    @relation("GroupMembers")
+  messages   Message[]
+
+  @@map("Group")
+}
+
+model Message {
+  id         Int       @id @default(autoincrement())
+  sender     api_user      @relation("SenderMessages", fields: [sender_id], references: [username])
+  sender_id  String
+  group      Group?    @relation(fields: [group_id], references: [id])
+  group_id   Int?
+  content    String
+  timestamp  DateTime  @default(now())
+  read_status MessageReadStatus[]
+
+  @@index([sender_id])
+  @@index([group_id])
+  @@map("Message")
+}
+
+model MessageReadStatus {
+  id         Int       @id @default(autoincrement())
+  message    Message   @relation(fields: [message_id], references: [id])
+  message_id Int
+  api_user       api_user      @relation(fields: [user_id], references: [username])
+  user_id    String
+  is_read    Boolean   @default(false)
+  read_at    DateTime?
+
+  @@index([user_id, is_read])
+  @@index([message_id, user_id])
+  @@map("MessageReadStatus")
+}
