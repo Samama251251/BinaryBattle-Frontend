@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import {IBM_Plex_Mono} from "next/font/google";
-import Header from "./components/Header";
 import "./globals.css";
-import Sidebar from "./components/Sidebar";
+import SessionWrapper from "./components/SessionWrapper";
 
 const IBM_Plex = IBM_Plex_Mono({
   subsets: ["latin"],
@@ -24,10 +23,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`text-base-content`}
-      >
-        <Sidebar /> 
-        {children}
+        className={`text-base-content`}>
+        <SessionWrapper>
+          {children}
+        </SessionWrapper>
       </body>
     </html>
   );
