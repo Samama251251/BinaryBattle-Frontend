@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import {IBM_Plex_Mono} from "next/font/google";
 import "./globals.css";
 import SessionWrapper from "./components/SessionWrapper";
+import Sidebar from "./components/Sidebar";
 
 const IBM_Plex = IBM_Plex_Mono({
   subsets: ["latin"],
@@ -25,6 +26,7 @@ export default function RootLayout({
       <body
         className={`text-base-content`}>
         <SessionWrapper>
+          <Sidebar />
           {children}
         </SessionWrapper>
       </body>
