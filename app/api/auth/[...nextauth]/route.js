@@ -2,7 +2,7 @@ import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { PrismaClient } from "@prisma/client";
 
-const prisma =new PrismaClient();
+const prisma = new PrismaClient();
 
 
 export const authOptions = {
@@ -70,7 +70,7 @@ export const authOptions = {
     },
 
     async redirect({ url, baseUrl }) {
-      return `${baseUrl}/practice`;
+      return `${baseUrl}`;
     },
   },
   pages: {

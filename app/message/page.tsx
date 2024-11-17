@@ -1,104 +1,102 @@
-'use client'
-import React, { useEffect, useState, useRef } from 'react'
+'use client';
+import React, { useEffect, useState, useRef } from 'react';
+import { v4 as uuidv4 } from 'uuid'; 
 
 function Page() {
-  const [message, setMessage] = useState('')
-  const [messages, setMessages] = useState<string[]>([])
-  const ws = useRef<WebSocket | null>(null)
+  const [message, setMessage] = useState<string>('');
+  const [userMessages, setUserMessages] = useState<{ id: string; text: string }[]>([]); // Tracks user-sent messages
+  const [messages, setMessages] = useState<{ id: string; text: string; source: 'server' | 'user' }[]>([]); // Tracks all messages
+  const ws = useRef<WebSocket | null>(null);
 
   useEffect(() => {
-    ws.current = new WebSocket('ws://localhost:8000/ws/chat/room2/')
+    ws.current = new WebSocket('ws://localhost:8000/ws/chat/room2/');
 
     ws.current.onopen = () => {
-      console.log('Connected to WebSocket')
-    }
+      console.log('Connected to WebSocket');
+    };
 
     ws.current.onmessage = (event) => {
-      const data = JSON.parse(event.data)
-      setMessages(prev => [...prev, data.message])
-    }
+      const data = JSON.parse(event.data);
+    
+      // Check if the message ID already exists in userMessages
+      const isUserMessage = userMessages.some((msg) => msg.id === data.id);
+    
+      if (!isUserMessage) {
+        setMessages((prev) => [
+          ...prev,
+          { id: data.id, text: data.text, source: 'server' },
+        ]);
+      }
+    };
+    
+    
+
     ws.current.onclose = () => {
-      console.log('Disconnected from WebSocket')
-    }
+      console.log('Disconnected from WebSocket');
+    };
 
     return () => {
       if (ws.current) {
-        ws.current.close()
+        ws.current.close();
       }
-    }
-  }, [])
+    };
+  }, []);
 
-  const sendMessage = () => {
-    if (ws.current && message.trim()) {
-      // ws.current.send(JSON.stringify({
-      //   type: 'message',
-      //   message: message
-      // }))
-      ws.current.send(message)
-      setMessage('')
-    }
+const sendMessage = () => {
+  if (ws.current && message.trim()) {
+    const userMessage = { id: uuidv4(), text: message, source: 'user' as 'user' };
+    
+    // Send message with unique ID to the server
+    ws.current.send(JSON.stringify(userMessage));
+
+    // Add to user messages
+    setUserMessages((prev) => [...prev, userMessage]);
+    setMessages((prev) => [...prev, userMessage]);
+
+    setMessage('');
   }
+};
+
+
   return (
-    <section className='w-screen h-screen'>
-      <div className='px-32 py-10 w-full h-full flex flex-col gap-3'>
-        <h1 className='text-3xl font-bold'>ChatRoom</h1>
+    <section className="w-screen h-screen">
+      <div className="px-32 py-10 w-full h-full flex flex-col gap-3">
+        <h1 className="text-3xl font-bold">ChatRoom</h1>
 
         {/* Chat Area */}
-        <div className='bg-base-300 h-full w-full mx-5 mb-10 rounded-xl p-4 overflow-y-auto'>
-          {messages.map((msg, index) => (
-            <div key={index} className='bg-base-100 p-2 rounded-lg mb-2'>
-              {msg}
+        <div className="overflow-x-auto mb-8 h-full bg-base-300 rounded-xl px-4 py-4">
+          {messages.map((msg) => (
+            <div key={msg.id} className={`chat ${msg.source === 'user' ? 'chat-end' : 'chat-start'}`}>
+              <div className="chat-image avatar">
+                <div className="w-10 rounded-full">
+                  <img
+                    alt="Avatar"
+                    src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"
+                  />
+                </div>
+              </div>
+              <div className="chat-bubble">{msg.text}</div>
             </div>
           ))}
         </div>
 
         {/* Message Input */}
-        <div className='flex gap-3 fixed bottom-0 p-4 w-full'>
-          <input 
-            type="text" 
+        <div className="flex gap-3 fixed bottom-0 p-4 w-full">
+          <input
+            type="text"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
-            className='input input-bordered w-5/6' 
-            placeholder='Type your message...' 
+            className="input input-bordered w-5/6"
+            placeholder="Type your message..."
           />
-          <button 
-            className='btn btn-primary'
-            onClick={sendMessage}
-          >
+          <button className="btn btn-primary" onClick={sendMessage}>
             Send
           </button>
         </div>
       </div>
     </section>
-  )
+  );
 }
 
-export default Page
-//  When component mounts:
-// Component mounts
-// ↓
-// useEffect runs
-// ↓
-// WebSocket connects
-// ↓
-// Sets up event listeners (onopen, onmessage, onclose)
-// ↓
-// Ready to receive messages
-
-// when message arrives:
-// Server sends message
-// ↓
-// onmessage handler triggers
-// ↓
-// Updates messages state
-// ↓
-// Component re-renders with new message
-
-// // When component unmounts:
-// Component unmounts
-// ↓
-// Cleanup function runs
-// ↓
-// WebSocket closes
-
+export default Page;

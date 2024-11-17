@@ -1,9 +1,14 @@
 'use client'
 
-import React from 'react'
+import React, { useEffect } from 'react'
 import Link from 'next/link'
+import { useSession } from 'next-auth/react'
 
 function Sidebar() {
+const { data: session, status } = useSession()
+useEffect(() => {
+    if (status === 'loading') return
+}, [session, status])
 return (
     <section className='bg-base-300 h-screen w-fit px-3 py-4 flex flex-col justify-between fixed'>
         <div className='flex flex-col items-center gap-3'>
@@ -46,10 +51,11 @@ return (
             </Link>
         </div>
         </div>
-        
+
+        {/* Account */}
         <div className='tooltip tooltip-top' data-tip='Account'>
             <Link className='btn btn-ghost btn-circle' href="account">
-                <img src="./images/logo.png" alt="logo" className='w-16' />
+                <img src={session?.user?.image || "/images/logo.png"} alt="logo" className='w-16 rounded-full' />
             </Link>
         </div>
     </section>

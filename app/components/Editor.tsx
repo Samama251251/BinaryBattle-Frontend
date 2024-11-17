@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import Editor from '@monaco-editor/react';
+import { useSession } from 'next-auth/react';
+import Link from 'next/link';
 
 const IDE = () => {
+  const { data: session, status } = useSession();
   const [value, setValue] = useState('');
   const [language, setLanguage] = useState('javascript');
   const [editor, setEditor] = useState(null);
@@ -54,6 +57,9 @@ const IDE = () => {
     <section className='bg-base-300 fixed w-full h-full'>
       <div className='flex items-center justify-between px-4'>
         <div className='flex items-center'>
+          <Link href='/' className='btn btn-square btn-ghost'>
+            <i className="fi fi-rr-angle-circle-left text-xl pt-2"></i>
+          </Link>
           <h1 className='text-3xl p-4 font-bold'>Finding the Shortest Path</h1>
           <span className='badge badge-success p-3 font-bold'>Easy</span>
         </div>
@@ -66,6 +72,9 @@ const IDE = () => {
           <button className='btn btn-neutral hover:btn-outline flex items-center'>
           <i className="fi fi-rr-cloud-upload-alt"></i>
           Submit
+          </button>
+          <button className='btn btn-circle btn-ghost'>
+            <img src={session?.user?.image || '/images/logo.png'} alt='logo' className='w-10 rounded-full' />
           </button>
         </div>
       </div>
