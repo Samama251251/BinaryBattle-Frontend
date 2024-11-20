@@ -18,7 +18,6 @@ export const authOptions = {
         console.error("User email is not available");
         return false;
       }
-
       try {
         const existingUser = await prisma.api_user.findUnique({
           where: {

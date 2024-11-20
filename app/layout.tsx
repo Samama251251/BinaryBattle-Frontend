@@ -3,7 +3,7 @@ import {IBM_Plex_Mono} from "next/font/google";
 import "./globals.css";
 import SessionWrapper from "./components/SessionWrapper";
 import Sidebar from "./components/Sidebar";
-
+import Header from "./components/Header";
 const IBM_Plex = IBM_Plex_Mono({
   subsets: ["latin"],
   weight: ['400', '700'],
@@ -23,6 +23,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+
       <body
         className={`text-base-content`}>
         <SessionWrapper>

@@ -17,7 +17,7 @@ function Page() {
 
     ws.current.onmessage = (event) => {
       const data = JSON.parse(event.data);
-    
+      console.log(data.message.text)
       // Check if the message ID already exists in userMessages
       const isUserMessage = userMessages.some((msg) => msg.id === data.id);
     
