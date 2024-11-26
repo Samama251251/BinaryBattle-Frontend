@@ -27,7 +27,7 @@ function Page() {
       try {
         setIsLoading(true);
         const response = await fetch(
-          `http://localhost:8000/api/friendship?username=john_doe`
+          `http://localhost:8000/api/friendship?username=${session?.user?.email.split("@")[0]}`
         );
         if (response.ok) {
           const data = await response.json();
@@ -46,22 +46,28 @@ function Page() {
 
   // Search functionality
   const handleSearch = async () => {
+    if (!searchQuery.trim()) {
+      setSearchResults([]); // Clear results if search query is empty
+      return;
+    }
+
     try {
       setIsLoading(true);
-      setSearchResults([])
       const response = await fetch(
-        `http://localhost:8000/api/users?username=samop51`
-      );
+        `http://localhost:8000/api/users?username=${encodeURIComponent(searchQuery)}`
+      ); // Updated to use the search query
       if (response.ok) {
         const data = await response.json();
-        // Filter out current user and existing friends
         console.log(data)
+        console.log("I came here")
+        // Filter out current user and existing friends
         const filteredResults = data.filter(
           (user: User) =>
             user.email !== session?.user?.email &&
             !friends.some((friend) => friend.email === user.email)
         );
-        setSearchResults(data);
+        setSearchResults(filteredResults); // Use filtered results
+      
       }
     } catch (error) {
       console.error("Error searching users:", error);
@@ -69,7 +75,6 @@ function Page() {
       setIsLoading(false);
     }
   };
-
   // Send friend request
   const sendFriendRequest = async (targetEmail: string) => {
     if (!session?.user?.email) return;

@@ -3,6 +3,7 @@ import {IBM_Plex_Mono} from "next/font/google";
 import "./globals.css";
 import SessionWrapper from "./components/SessionWrapper";
 import Sidebar from "./components/Sidebar";
+import { WebSocketProvider } from "./contexts/WebSocketContext";
 import Header from "./components/Header";
 const IBM_Plex = IBM_Plex_Mono({
   subsets: ["latin"],
@@ -27,8 +28,10 @@ export default function RootLayout({
       <body
         className={`text-base-content`}>
         <SessionWrapper>
-          <Sidebar />
-          {children}
+          <WebSocketProvider>
+            <Sidebar />
+            {children}
+          </WebSocketProvider>
         </SessionWrapper>
       </body>
     </html>
