@@ -5,6 +5,7 @@ import SessionWrapper from "./components/SessionWrapper";
 import Sidebar from "./components/Sidebar";
 import { WebSocketProvider } from "./contexts/WebSocketContext";
 import Header from "./components/Header";
+import { Toaster } from "react-hot-toast";
 const IBM_Plex = IBM_Plex_Mono({
   subsets: ["latin"],
   weight: ['400', '700'],
@@ -31,6 +32,7 @@ export default function RootLayout({
           <WebSocketProvider>
             <Sidebar />
             {children}
+            <Toaster />
           </WebSocketProvider>
         </SessionWrapper>
       </body>

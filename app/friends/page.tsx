@@ -1,7 +1,8 @@
-"use client";
+'use client';
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import toast from "react-hot-toast";
 
 interface User {
   email: string;
@@ -10,7 +11,12 @@ interface User {
   score: number;
   rank: string;
 }
-
+interface FriendRequest {
+  id: string;
+  senderEmail: string;
+  status: 'pending' | 'accepted' | 'rejected';
+  createdAt: string;
+}
 function Page() {
   // State management
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -18,7 +24,8 @@ function Page() {
   const [friends, setFriends] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { data: session } = useSession();
-
+  const [hasSearched, setHasSearched] = useState<boolean>(false);
+  const [friendRequests, setFriendRequests] = useState<FriendRequest[]>([]);
   // Fetch friends on component mount
   useEffect(() => {
     const fetchFriends = async () => {
@@ -27,7 +34,9 @@ function Page() {
       try {
         setIsLoading(true);
         const response = await fetch(
-          `http://localhost:8000/api/friendship?username=${session?.user?.email.split("@")[0]}`
+          `http://localhost:8000/api/friendship?username=${
+            session?.user?.email.split("@")[0]
+          }`
         );
         if (response.ok) {
           const data = await response.json();
@@ -47,27 +56,27 @@ function Page() {
   // Search functionality
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
-      setSearchResults([]); // Clear results if search query is empty
+      setSearchResults([]);
+      setHasSearched(false);
       return;
     }
 
     try {
       setIsLoading(true);
       const response = await fetch(
-        `http://localhost:8000/api/users?username=${encodeURIComponent(searchQuery)}`
-      ); // Updated to use the search query
+        `http://localhost:8000/api/users?username=${encodeURIComponent(
+          searchQuery
+        )}`
+      );
       if (response.ok) {
         const data = await response.json();
-        console.log(data)
-        console.log("I came here")
-        // Filter out current user and existing friends
         const filteredResults = data.filter(
           (user: User) =>
             user.email !== session?.user?.email &&
             !friends.some((friend) => friend.email === user.email)
         );
-        setSearchResults(filteredResults); // Use filtered results
-      
+        setSearchResults(filteredResults);
+        setHasSearched(true);
       }
     } catch (error) {
       console.error("Error searching users:", error);
@@ -75,44 +84,54 @@ function Page() {
       setIsLoading(false);
     }
   };
-  // Send friend request
   const sendFriendRequest = async (targetEmail: string) => {
     if (!session?.user?.email) return;
 
     try {
-      const response = await fetch(
-        "http://localhost:8000/api/friend-requests",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            fromEmail: session.user.email,
-            toEmail: targetEmail,
-          }),
-        }
-      );
-
+      const response = await fetch("http://localhost:8000/api/friendship", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          sender: session.user.email.split("@")[0],
+          receiver: targetEmail.split("@")[0],
+        }),
+      });
+      console.log("Friend request response:", response);
       if (response.ok) {
-        // Remove the user from search results after sending request
         setSearchResults((prev) =>
           prev.filter((user) => user.email !== targetEmail)
         );
-        alert("Friend request sent successfully!");
+        toast.success("Friend request sent successfully!", {
+          duration: 3000,
+          position: "top-center",
+          style: {
+            background: "#333",
+            color: "#fff",
+            borderRadius: "10px",
+          },
+        });
       } else {
         throw new Error("Failed to send friend request");
       }
     } catch (error) {
       console.error("Error sending friend request:", error);
-      alert("Failed to send friend request");
+      toast.error("Failed to send friend request", {
+        duration: 3000,
+        position: "bottom-right",
+        style: {
+          background: "#333",
+          color: "#fff",
+          borderRadius: "10px",
+        },
+      });
     }
   };
 
   // Remove friend
   const removeFriend = async (friendEmail: string) => {
     if (!session?.user?.email) return;
-
     try {
       const response = await fetch("http://localhost:8000/api/friends/remove", {
         method: "POST",
@@ -142,6 +161,20 @@ function Page() {
   return (
     <section className="w-screen h-screen">
       <div className="px-32 py-10 w-full h-full flex flex-col gap-3">
+        <div className="flex justify-between items-center mb-4">
+          <div className="flex justify-end w-full">
+            <Link href="/friendRequests" className="btn btn-primary">
+              <i className="fi fi-rr-bell"></i>
+              Friend Requests
+              {/* Optional: Add a badge if there are pending requests */}
+              {friendRequests.length > 0 && (
+                <div className="badge badge-secondary">
+                  {friendRequests.length}
+                </div>
+              )}
+            </Link>
+          </div>
+        </div>
         {/* Search Users */}
         <div className="flex flex-col w-3/4 h-fit bg-base-300 rounded-lg p-4">
           <h1 className="text-3xl font-extrabold mb-4">Find Friends</h1>
@@ -151,7 +184,10 @@ function Page() {
               placeholder="Search users by name or email..."
               className="input input-bordered w-full mb-4"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setHasSearched(false);
+              }}
             />
             <button
               className="btn btn-primary mb-4"
@@ -167,38 +203,41 @@ function Page() {
             </button>
           </div>
 
-          {searchResults.length > 0 && (
+          {hasSearched && (
             <div className="flex flex-col gap-4">
-              {searchResults.map((user) => (
-                <div
-                  key={user.email}
-                  className="flex items-center gap-4 justify-between"
-                >
-                  <div className="flex gap-3">
-                    <div className="avatar">
-                      <div className="w-10 rounded-full">
+              {searchResults.length > 0 ? (
+                searchResults.map((user) => (
+                  <div
+                    key={user.email}
+                    className="flex items-center gap-4 justify-between"
+                  >
+                    <div className="flex gap-3">
+                      <div className="avatar">
+                        <div className="w-10 rounded-full"></div>
+                      </div>
+                      <div>
+                        <p className="text-xs font-light font-mono">
+                          {user.email}
+                        </p>
                       </div>
                     </div>
-                    <div>
-                    
-                      <p className="text-xs font-light font-mono">
-                        {user.email}
-                      </p>
-                    </div>
+                    <button
+                      className="btn btn-accent"
+                      onClick={() => sendFriendRequest(user.email)}
+                    >
+                      <i className="fi fi-rr-user-add text-xl"></i>
+                      Add Friend
+                    </button>
                   </div>
-                  <button
-                    className="btn btn-accent"
-                    onClick={() => sendFriendRequest(user.email)}
-                  >
-                    <i className="fi fi-rr-user-add text-xl"></i>
-                    Add Friend
-                  </button>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p className="text-center text-gray-500">
+                  No users found matching "{searchQuery}"
+                </p>
+              )}
             </div>
           )}
         </div>
-
         {/* Friends List */}
         <div className="flex flex-col w-3/4 h-fit bg-base-300 rounded-lg p-4">
           <h1 className="text-3xl font-extrabold mb-10">Your Friends</h1>
@@ -223,9 +262,7 @@ function Page() {
                         friend.isOnline ? "online" : "offline"
                       }`}
                     >
-                      <div className="w-10 rounded-full">
-
-                      </div>
+                      <div className="w-10 rounded-full"></div>
                     </div>
                     <div>
                       <p className="text-xs font-light font-mono">

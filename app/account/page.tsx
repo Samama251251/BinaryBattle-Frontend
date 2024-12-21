@@ -12,5 +12,4 @@ return (
     </section>
 )
 }
-
 export default page

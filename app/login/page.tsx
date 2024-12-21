@@ -1,21 +1,62 @@
 "use client";
 import React from 'react';
 import { useSession, signIn, signOut } from "next-auth/react";
+import { FaGoogle } from 'react-icons/fa';
 
 const Page = () => {
   return (
-    <div className='relative h-full w-full bg-gradient-to-r from-gray-200 to-cyan-200'>
-      <div className='flex flex-col items-center relative text-4xl min-h-screen'>
-        <h1 className='text-5xl relative top-10 bg-gradient-to-r from-neutral-600 to-cyan-600 inline-block text-transparent bg-clip-text animate-bounce'>
-          LOGIN TO OUR APP
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex flex-col items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        <h1 className="text-4xl font-bold text-center mb-8 text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-violet-500">
+          Binary Battles
         </h1>
-        <div className="flex items-center justify-center h-screen">
-          <div className="backdrop-blur-md bg-white/30 p-10 rounded-lg shadow-lg animate-fade-in">
-            <button onClick={() => signIn("google", { callbackUrl: '/' })} className="backdrop-blur-md bg-white/30 px-4 py-2 border flex items-center gap-2 border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-200 hover:border-slate-400 dark:hover:border-slate-500 hover:text-slate-900 dark:hover:text-slate-300 hover:shadow transition duration-150">
-              <img className="w-8 h-8 sm:w-14 sm:h-14" src="https://www.svgrepo.com/show/475656/google-color.svg" loading="lazy" alt="google logo" />
-              <span className="text-slate-700 dark:text-slate-500">Login with Google</span>
-            </button>
+        
+        <div className="bg-gray-800 rounded-lg shadow-xl p-8">
+          <h2 className="text-2xl font-semibold text-center text-gray-200 mb-6">
+            Login to Your Account
+          </h2>
+          
+          <button 
+            onClick={() => signIn("google", { callbackUrl: '/' })}
+            className="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center transition duration-300 ease-in-out transform hover:scale-105"
+          >
+            <FaGoogle className="mr-2" />
+            Continue with Google
+          </button>
+          
+          <div className="mt-6 flex items-center justify-between">
+            <hr className="w-full border-gray-600" />
+            <span className="px-2 text-gray-400 text-sm">OR</span>
+            <hr className="w-full border-gray-600" />
           </div>
+          
+          <form className="mt-6 space-y-4">
+            <div>
+              <input 
+                type="email" 
+                placeholder="Email" 
+                className="w-full px-4 py-3 rounded-lg bg-gray-700 text-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-500"
+              />
+            </div>
+            <div>
+              <input 
+                type="password" 
+                placeholder="Password" 
+                className="w-full px-4 py-3 rounded-lg bg-gray-700 text-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-500"
+              />
+            </div>
+            <button 
+              type="submit" 
+              className="w-full bg-gradient-to-r from-pink-500 to-violet-500 text-white font-bold py-3 px-4 rounded-lg hover:opacity-90 transition duration-300 ease-in-out transform hover:scale-105"
+            >
+              Sign In
+            </button>
+          </form>
+          
+          <p className="mt-6 text-center text-gray-400">
+            Don't have an account?{' '}
+            <a href="#" className="text-pink-500 hover:underline">Sign up</a>
+          </p>
         </div>
       </div>
     </div>
@@ -23,3 +64,4 @@ const Page = () => {
 };
 
 export default Page;
+

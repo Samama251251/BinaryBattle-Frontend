@@ -19,6 +19,7 @@ model api_user {
   created_at                 DateTime            @default(now())
   score                      Int                 @default(0) @db.SmallInt
   rank                       String
+  isOnline                   Boolean             @default(false)
   
   // Relations
   friendship_requests_sent    Friendship[]        @relation("SenderFriendships")
@@ -28,6 +29,7 @@ model api_user {
   message_read_status        MessageReadStatus[]
 
   @@map("api_user")
+  @@orderBy([created_at])
 }
 
 model Friendship {

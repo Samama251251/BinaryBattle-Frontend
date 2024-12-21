@@ -25,7 +25,7 @@ return (
             
          {/* Challenge Button */}
         <div className='tooltip tooltip-right' data-tip = "Challenges">
-            <Link className='btn btn-square btn-ghost' href="/challenges">
+            <Link className='btn btn-square btn-ghost' href="challenges">
                 <i className="fi fi-rs-two-swords text-2xl"></i>
             </Link>
         </div>
@@ -50,7 +50,13 @@ return (
                 <i className="fi fi-rr-users-alt text-2xl"></i>
             </Link>
         </div>
+        <div className='tooltip tooltip-right' data-tip = "Groups">
+            <Link className='btn btn-square btn-ghost' href="/groups">
+                <i className="fi fi-rr-users-medical text-2xl"></i>
+            </Link>
         </div>
+        </div>
+        {/* Groups Button */}
 
         {/* Account */}
         <div className='tooltip tooltip-top' data-tip='Account'>
