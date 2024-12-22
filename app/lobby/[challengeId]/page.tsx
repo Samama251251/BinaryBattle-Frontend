@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { FiUsers, FiClock, FiCheckCircle, FiXCircle } from 'react-icons/fi';
@@ -45,54 +45,24 @@ const getProblemDetails = (problemId: string) => {
   return problem;
 };
 
-export default function LobbyPage() {
-  const router = useRouter();
-  const params = useParams();
-  const { data: session } = useSession();
-  const [challenge, setChallenge] = useState<Challenge | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [isReady, setIsReady] = useState(false);
-  const [countdown, setCountdown] = useState<number | null>(null);
-  const [wsConnection, setWsConnection] = useState<WebSocket | null>(null);
-
-  // WebSocket message handler
-  const handleWebSocketMessage = useCallback((event: MessageEvent) => {
-    const data = JSON.parse(event.data);
-    console.log('WebSocket message received:', data);
-
-    switch (data.type) {
-      case 'ready_status_update':
-        // Update participant ready status
-        if (challenge) {
-          const updatedParticipants = challenge.participants.map(p =>
-            p.username === data.username ? { ...p, isReady: data.isReady } : p
-          );
-          setChallenge(prev => prev ? { ...prev, participants: updatedParticipants } : null);
-        }
-        break;
-
-      case 'challenge_started':
-        // Handle challenge start
-        const startTime = new Date(data.startTime);
-        if (challenge) {
-          setChallenge(prev => prev ? { ...prev, startTime: data.startTime, status: 'starting' } : null);
-        }
-        break;
-    }
-  }, [challenge]);
-
-  // Initialize WebSocket connection
+function useWebSocket(challengeId: string, userEmail: string | null, onMessage: (data: any) => void) {
+  const wsRef = useRef<WebSocket | null>(null);
+  
   useEffect(() => {
-    if (!params.challengeId) return;
+    if (!challengeId || !userEmail) return;
 
-    const ws = new WebSocket(`ws://localhost:8000/ws/challenge/lobby/${params.challengeId}/`);
+    const username = encodeURIComponent(userEmail.split('@')[0]);
+    const ws = new WebSocket(`ws://localhost:8000/ws/challenge/lobby/${challengeId}/${username}/`);
+    wsRef.current = ws;
 
     ws.onopen = () => {
       console.log('WebSocket connection established');
-      setWsConnection(ws);
     };
 
-    ws.onmessage = handleWebSocketMessage;
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      onMessage(data);
+    };
 
     ws.onerror = (error) => {
       console.error('WebSocket error:', error);
@@ -101,16 +71,101 @@ export default function LobbyPage() {
 
     ws.onclose = () => {
       console.log('WebSocket connection closed');
-      setWsConnection(null);
+      wsRef.current = null;
     };
 
-    // Cleanup on unmount
     return () => {
       if (ws.readyState === WebSocket.OPEN) {
         ws.close();
       }
     };
-  }, [params.challengeId, handleWebSocketMessage]);
+  }, [challengeId, userEmail, onMessage]);
+
+  return wsRef;
+}
+
+export default function LobbyPage() {
+  const router = useRouter();
+  const params = useParams();
+  const { data: session } = useSession();
+  const [challenge, setChallenge] = useState<Challenge | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [isReady, setIsReady] = useState(false);
+  const [countdown, setCountdown] = useState<number | null>(null);
+  const messageHandlerRef = useRef<(data: any) => void>();
+  
+  // Store message handler in ref to keep it stable
+  messageHandlerRef.current = useCallback((data: any) => {
+    console.log('WebSocket message received:', data);
+
+    switch (data.type) {
+      case 'ready_status_update':
+        setChallenge(prev => {
+          if (!prev) return null;
+          const updatedParticipants = prev.participants.map(p =>
+            p.username === data.username ? { ...p, isReady: data.isReady } : p
+          );
+          return { ...prev, participants: updatedParticipants };
+        });
+        break;
+
+      case 'user_join_leave':
+        setChallenge(prev => {
+          if (!prev) return null;
+          if (data.action === 'joined') {
+            if (!prev.participants.some(p => p.username === data.username)) {
+              const newParticipant: Participant = {
+                email: `${data.username}@example.com`,
+                username: data.username,
+                isReady: false,
+                joinedAt: new Date().toISOString()
+              };
+              toast.success(`${data.username} joined the lobby`);
+              return {
+                ...prev,
+                participants: [...prev.participants, newParticipant]
+              };
+            }
+          } else if (data.action === 'left') {
+            toast.success(`${data.username} left the lobby`);
+            return {
+              ...prev,
+              participants: prev.participants.filter(p => p.username !== data.username)
+            };
+          }
+          return prev;
+        });
+        break;
+
+      case 'challenge_started':
+        setChallenge(prev => prev ? {
+          ...prev,
+          startTime: data.startTime,
+          status: 'starting'
+        } : null);
+
+        let count = 5;
+        setCountdown(count);
+        const timer = setInterval(() => {
+          count--;
+          setCountdown(count);
+          if (count === 0) {
+            clearInterval(timer);
+            router.push(`/challenges/${params.challengeId}/solve`);
+          }
+        }, 1000);
+        break;
+    }
+  }, [router, params.challengeId]);
+
+  // Use the custom hook with stable message handler
+  const wsRef = useWebSocket(
+    params.challengeId as string,
+    session?.user?.email ?? null,
+    useCallback((data) => {
+      messageHandlerRef.current?.(data);
+    }, [])
+  );
 
   useEffect(() => {
     const fetchChallenge = async () => {
@@ -176,7 +231,7 @@ export default function LobbyPage() {
     }
   }, [params.challengeId, router]);
 
-  // Modify toggleReady to send WebSocket message
+  // Update toggleReady to use wsRef
   const toggleReady = async () => {
     try {
       const response = await fetch(`http://localhost:8000/api/challenges/${params.challengeId}/ready`, {
@@ -193,29 +248,30 @@ export default function LobbyPage() {
 
       setIsReady(!isReady);
       
-      // Send WebSocket message
-      if (wsConnection && wsConnection.readyState === WebSocket.OPEN) {
-        wsConnection.send(JSON.stringify({
+      if (wsRef.current?.readyState === WebSocket.OPEN) {
+        wsRef.current.send(JSON.stringify({
           type: 'ready_status',
-          username: session?.user?.email,
+          email: session?.user?.email,
+          username: session?.user?.name || session?.user?.email,
           isReady: !isReady
         }));
       }
 
       // Update local challenge state
-      if (challenge) {
-        const updatedParticipants = challenge.participants.map(p => 
+      setChallenge(prev => {
+        if (!prev) return null;
+        const updatedParticipants = prev.participants.map(p => 
           p.email === session?.user?.email ? { ...p, isReady: !isReady } : p
         );
-        setChallenge({ ...challenge, participants: updatedParticipants });
-      }
+        return { ...prev, participants: updatedParticipants };
+      });
     } catch (error) {
       console.error('Error updating ready status:', error);
       toast.error('Failed to update ready status');
     }
   };
 
-  // Modify startChallenge to send WebSocket message
+  // Update startChallenge to use wsRef
   const startChallenge = async () => {
     if (!challenge) return;
     
@@ -228,9 +284,8 @@ export default function LobbyPage() {
         throw new Error('Failed to start challenge');
       }
 
-      // Send WebSocket message
-      if (wsConnection && wsConnection.readyState === WebSocket.OPEN) {
-        wsConnection.send(JSON.stringify({
+      if (wsRef.current?.readyState === WebSocket.OPEN) {
+        wsRef.current.send(JSON.stringify({
           type: 'challenge_start',
           startTime: new Date().toISOString()
         }));

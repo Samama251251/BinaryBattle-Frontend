@@ -3,17 +3,17 @@ import Editor from '@monaco-editor/react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 
-const IDE = () => {
+interface IDEProps {
+  value: string;
+  onChange: (value: string | undefined) => void;
+  language: string;
+  theme: string;
+}
+
+const IDE = ({ value, onChange, language, theme }: IDEProps) => {
   const { data: session, status } = useSession();
-  const [value, setValue] = useState('');
-  const [language, setLanguage] = useState('javascript');
   const [editor, setEditor] = useState(null);
   const [output, setOutput] = useState('');
-  const [theme, setTheme] = useState('dracula');
-
-  const handleEditorChange = (value: string | undefined) => {
-    setValue(value || '');
-  };
 
   const handleEditorWillMount = (monaco: any) => {
     monaco.editor.defineTheme('dracula', {
@@ -43,10 +43,6 @@ const IDE = () => {
       }
     });
     monaco.editor.setTheme('dracula');
-  };
-
-  const handleLanguageChange = (event: any) => {
-    setLanguage(event.target.value);
   };
 
   const handleEditorDidMount = (editor: any, monaco: any) => {
@@ -86,7 +82,7 @@ const IDE = () => {
             id="language-select"
             className='select select-sm bg-base-200'
             value={language}
-            onChange={handleLanguageChange}
+            onChange={(e) => onChange(e.target.value)}
             >
             <option value="javascript">JS</option>
             <option value="python">Python</option>
@@ -97,7 +93,7 @@ const IDE = () => {
             className='w-full'
             language={language}
             value={value}
-            onChange={handleEditorChange}
+            onChange={onChange}
             beforeMount={handleEditorWillMount}
             onMount={handleEditorDidMount}
             theme={theme}
