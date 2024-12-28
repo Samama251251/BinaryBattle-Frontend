@@ -1,10 +1,10 @@
 "use client";
-import { useState, useEffect } from 'react';
-import { useRouter, useParams } from 'next/navigation';
-import { useSession } from 'next-auth/react';
-import IDE from '@/app/components/Editor';
-import { problems } from '@/app/problems/problems';
-import { toast } from 'react-hot-toast';
+import { useState, useEffect } from "react";
+import { useRouter, useParams } from "next/navigation";
+import { useSession } from "next-auth/react";
+import IDE from "@/app/components/Editor";
+import { problems } from "@/app/problems/problems";
+import { toast } from "react-hot-toast";
 
 interface TestCase {
   input: string;
@@ -28,7 +28,7 @@ interface ArenaChallenge {
   startTime: string;
   endTime: string;
   duration: number;
-  status: 'active' | 'completed';
+  status: "active" | "completed";
   participants: {
     email: string;
     username: string;
@@ -43,25 +43,32 @@ export default function ArenaPage() {
   const params = useParams();
   const { data: session } = useSession();
   const [challenge, setChallenge] = useState<ArenaChallenge | null>(null);
-  const [code, setCode] = useState<string>('');
+  const [code, setCode] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
+  const [consoleOutput, setConsoleOutput] = useState<string>("");
+  const [consoleLoading, setConsoleLoading] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   // Fetch challenge details
   useEffect(() => {
     const fetchChallenge = async () => {
       try {
-        const response = await fetch(`http://localhost:8000/api/challenges/${params.challengeId}`);
+        const response = await fetch(
+          `http://localhost:8000/api/challenges/${params.challengeId}`
+        );
         if (!response.ok) {
-          throw new Error('Challenge not found');
+          throw new Error("Challenge not found");
         }
         const data = await response.json();
-        
+
         // Get problem details
-        const problemDetails = problems.find(p => p.id === String(data.problem_id));
+        const problemDetails = problems.find(
+          (p) => p.id === String(data.problem_id)
+        );
         if (!problemDetails) {
-          throw new Error('Problem not found');
+          throw new Error("Problem not found");
         }
 
         const challengeData: ArenaChallenge = {
@@ -73,15 +80,16 @@ export default function ArenaPage() {
           duration: data.duration,
           status: data.status,
           participants: data.participants,
-          problemDetails: problemDetails
+          problemDetails: problemDetails,
         };
 
         setChallenge(challengeData);
-        setCode(problemDetails.starterCode);
+        // Set the starter code from the problem details
+        setCode(problemDetails.starterCode || "");
       } catch (error) {
-        console.error('Error fetching challenge:', error);
-        toast.error('Failed to load challenge');
-        router.push('/challenges');
+        console.error("Error fetching challenge:", error);
+        toast.error("Failed to load challenge");
+        router.push("/challenges");
       } finally {
         setLoading(false);
       }
@@ -121,33 +129,99 @@ export default function ArenaPage() {
     if (!challenge || !session?.user?.email) return;
 
     setSubmitting(true);
+    setIsProcessing(true);
+    setConsoleLoading(true);
+    setConsoleOutput("Running your code...");  // Initial loading message
+    
     try {
-      const response = await fetch(`http://localhost:8000/api/challenges/${challenge.id}/submit`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          code,
-          email: session.user.email,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Submission failed');
+      // Get the problem details and test cases
+      const problem = problems.find((p) => p.id === challenge.problemId);
+      if (!problem) {
+        throw new Error("Problem details not found");
       }
 
-      const result = await response.json();
-      toast.success('Solution submitted successfully!');
       
-      // Handle submission result
-      // You might want to show test case results, score, etc.
+      // Submit code with test cases
+      const submitResponse = await fetch(
+        "http://localhost:8000/api/submissions",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            code,
+            language: "python",
+            challengeId: challenge.id,
+            userEmail: session.user.email,
+            testCases: problem.testCases.map((testCase) => ({
+              input: testCase.input,
+              output: testCase.output,
+            })),
+            problemId: challenge.problemId,
+          }),
+        }
+      );
 
+      if (!submitResponse.ok) {
+        throw new Error("Submission failed");
+      }
+
+      const { token } = await submitResponse.json();
+
+      // Poll for results
+      let result;
+      let dots = "";
+      do {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        const statusResponse = await fetch(
+          `http://localhost:8000/api/submissions?token=${token}`
+        );
+        result = await statusResponse.json();
+        
+        // Update loading message with animated dots
+        dots = dots.length >= 3 ? "" : dots + ".";
+        setConsoleOutput(`Running your code${dots}\nPlease wait while we process your submission`);
+        
+      } while (result.status?.id === 1 || result.status?.id === 2);
+
+      // Handle submission results
+      if (result.status?.id === 3) { // Accepted
+        const output = result.stdout?.trim() || '';
+        const expectedOutput = problem.testCases[0].output.trim();
+        const passed = output === expectedOutput;
+
+        const testCaseOutput = `Test Case 1: ${passed ? "PASSED" : "FAILED"}
+Input: ${problem.testCases[0].input}
+Expected Output: ${expectedOutput}
+Your Output: ${output}
+Execution Time: ${result.time}s
+Memory Used: ${result.memory}KB
+${result.stderr ? `Error: ${result.stderr}` : ""}`;
+
+        setConsoleOutput(testCaseOutput);
+
+        if (passed) {
+          toast.success("Solution accepted!");
+        } else {
+          toast.error("Output doesn't match expected result");
+        }
+      } else {
+        // Handle compilation/runtime errors
+        const errorMessage = result.stderr || result.compile_output || result.message || "An unknown error occurred";
+        setConsoleOutput(errorMessage);
+        toast.error("Execution failed");
+      }
     } catch (error) {
-      console.error('Submission error:', error);
-      toast.error('Failed to submit solution');
+      console.error("Error submitting code:", error);
+      toast.error("Error submitting code");
+      setConsoleOutput(
+        (error as Error).message || "An error occurred while submitting your code"
+      );
     } finally {
       setSubmitting(false);
+      setIsProcessing(false);
+      setConsoleLoading(false);
     }
   };
 
@@ -163,9 +237,9 @@ export default function ArenaPage() {
     return (
       <div className="flex flex-col items-center justify-center h-screen">
         <h2 className="text-2xl font-bold mb-4">Challenge not found</h2>
-        <button 
+        <button
           className="btn btn-primary"
-          onClick={() => router.push('/challenges')}
+          onClick={() => router.push("/challenges")}
         >
           Back to Challenges
         </button>
@@ -174,16 +248,29 @@ export default function ArenaPage() {
   }
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen relative">
+      {/* Fullscreen loader overlay */}
+      {isProcessing && (
+        <div className="absolute inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+          <div className="bg-base-200 p-8 rounded-lg flex flex-col items-center gap-4">
+            <span className="loading loading-spinner loading-lg"></span>
+            <p className="text-lg font-semibold">Processing your submission...</p>
+          </div>
+        </div>
+      )}
+
       {/* Problem Description Panel */}
       <div className="w-1/3 p-4 bg-base-200 overflow-y-auto">
         <div className="mb-4">
           <h1 className="text-2xl font-bold mb-2">{challenge.title}</h1>
           <div className="flex items-center gap-4 text-sm">
-            <span className="badge badge-primary">{challenge.problemDetails.difficulty}</span>
+            <span className="badge badge-primary">
+              {challenge.problemDetails.difficulty}
+            </span>
             {timeLeft !== null && (
               <span className="font-mono">
-                Time Left: {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
+                Time Left: {Math.floor(timeLeft / 60)}:
+                {(timeLeft % 60).toString().padStart(2, "0")}
               </span>
             )}
           </div>
@@ -196,10 +283,16 @@ export default function ArenaPage() {
           <h3>Examples</h3>
           {challenge.problemDetails.testCases.map((testCase, index) => (
             <div key={index} className="bg-base-300 p-4 rounded-lg mb-4">
-              <p><strong>Input:</strong> {testCase.input}</p>
-              <p><strong>Output:</strong> {testCase.output}</p>
+              <p>
+                <strong>Input:</strong> {testCase.input}
+              </p>
+              <p>
+                <strong>Output:</strong> {testCase.output}
+              </p>
               {testCase.explanation && (
-                <p><strong>Explanation:</strong> {testCase.explanation}</p>
+                <p>
+                  <strong>Explanation:</strong> {testCase.explanation}
+                </p>
               )}
             </div>
           ))}
@@ -210,20 +303,31 @@ export default function ArenaPage() {
       <div className="flex-1 flex flex-col">
         <IDE
           value={code}
-          onChange={(value: string | undefined) => setCode(value || '')}
+          onChange={(value: string | undefined) => setCode(value || "")}
           language="python"
           theme="dracula"
+          title={challenge.title}
+          difficulty={challenge.problemDetails.difficulty}
+          onSubmit={handleSubmit}
+          updateConsoleOutput={setConsoleOutput}
         />
         <div className="p-4 bg-base-300">
           <button
             className="btn btn-primary w-full"
             onClick={handleSubmit}
-            disabled={submitting}
+            disabled={submitting || isProcessing}
           >
-            {submitting ? 'Submitting...' : 'Submit Solution'}
+            {(submitting || isProcessing) ? (
+              <span className="flex items-center justify-center gap-2">
+                <span className="loading loading-spinner loading-sm"></span>
+                Processing...
+              </span>
+            ) : (
+              "Submit Solution"
+            )}
           </button>
         </div>
       </div>
     </div>
   );
-} 
+}

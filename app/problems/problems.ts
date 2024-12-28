@@ -14,15 +14,22 @@ Input Format:
 
 Output Format:
 - A single integer representing the sum`,
-    starterCode: `# Read two numbers from input
-a, b = map(int, input().split())
+    starterCode: `def solve(a: int, b: int) -> int:
+    """
+    Calculate the sum of two numbers
+    Args:
+        a: first integer
+        b: second integer
+    Returns:
+        The sum of a and b
+    """
+    # Write your code here
+    pass
 
-# Your code here
-def solve(a, b):
-    pass  # Replace this with your code
-
-# Print the result
-print(solve(a, b))`,
+# Do not modify below this line
+if __name__ == "__main__":
+    a, b = map(int, input().split())
+    print(solve(a, b))`,
     testCases: [
       { input: "4 5", output: "9" },
       { input: "-2 8", output: "6" },
@@ -33,26 +40,22 @@ print(solve(a, b))`,
     id: "2",
     title: "Even or Odd",
     difficulty: "Easy",
-    description: `Write a program that determines if a number is even or odd.
+    description: `Write a program that determines if a number is even or odd.`,
+    starterCode: `def solve(n: int) -> str:
+    """
+    Determine if a number is even or odd
+    Args:
+        n: input integer
+    Returns:
+        'Even' if the number is even, 'Odd' if the number is odd
+    """
+    # Write your code here
+    pass
 
-Example:
-Input: 4
-Output: Even
-
-Input Format:
-- A single integer
-
-Output Format:
-- String "Even" or "Odd" (case-sensitive)`,
-    starterCode: `# Read number from input
-n = int(input())
-
-# Your code here
-def solve(n):
-    pass  # Replace this with your code
-
-# Print the result
-print(solve(n))`,
+# Do not modify below this line
+if __name__ == "__main__":
+    n = int(input())
+    print(solve(n))`,
     testCases: [
       { input: "4", output: "Even" },
       { input: "3", output: "Odd" },
@@ -63,26 +66,22 @@ print(solve(n))`,
     id: "3",
     title: "Reverse String",
     difficulty: "Easy",
-    description: `Write a program that reverses a given string.
+    description: `Write a program that reverses a given string.`,
+    starterCode: `def solve(s: str) -> str:
+    """
+    Reverse the input string
+    Args:
+        s: input string
+    Returns:
+        The reversed string
+    """
+    # Write your code here
+    pass
 
-Example:
-Input: hello
-Output: olleh
-
-Input Format:
-- A single line containing a string
-
-Output Format:
-- The reversed string`,
-    starterCode: `# Read string from input
-s = input()
-
-# Your code here
-def solve(s):
-    pass  # Replace this with your code
-
-# Print the result
-print(solve(s))`,
+# Do not modify below this line
+if __name__ == "__main__":
+    s = input()
+    print(solve(s))`,
     testCases: [
       { input: "hello", output: "olleh" },
       { input: "python", output: "nohtyp" },
@@ -93,26 +92,22 @@ print(solve(s))`,
     id: "4",
     title: "Count Vowels",
     difficulty: "Easy",
-    description: `Write a program that counts the number of vowels (a, e, i, o, u) in a given string.
+    description: `Write a program that counts the number of vowels (a, e, i, o, u) in a given string.`,
+    starterCode: `def solve(s: str) -> int:
+    """
+    Count the number of vowels in the input string
+    Args:
+        s: input string
+    Returns:
+        The number of vowels (a, e, i, o, u) in the string
+    """
+    # Write your code here
+    pass
 
-Example:
-Input: hello
-Output: 2
-
-Input Format:
-- A single line containing a string
-
-Output Format:
-- An integer representing the count of vowels`,
-    starterCode: `# Read string from input
-s = input()
-
-# Your code here
-def solve(s):
-    pass  # Replace this with your code
-
-# Print the result
-print(solve(s))`,
+# Do not modify below this line
+if __name__ == "__main__":
+    s = input()
+    print(solve(s))`,
     testCases: [
       { input: "hello", output: "2" },
       { input: "python", output: "1" },
@@ -123,26 +118,24 @@ print(solve(s))`,
     id: "5",
     title: "Maximum of Three Numbers",
     difficulty: "Easy",
-    description: `Write a program that finds the maximum of three numbers.
+    description: `Write a program that finds the maximum of three numbers.`,
+    starterCode: `def solve(a: int, b: int, c: int) -> int:
+    """
+    Find the maximum of three numbers
+    Args:
+        a: first integer
+        b: second integer
+        c: third integer
+    Returns:
+        The maximum value among a, b, and c
+    """
+    # Write your code here
+    pass
 
-Example:
-Input: 1 3 2
-Output: 3
-
-Input Format:
-- A single line containing three space-separated integers
-
-Output Format:
-- A single integer representing the maximum value`,
-    starterCode: `# Read three numbers from input
-a, b, c = map(int, input().split())
-
-# Your code here
-def solve(a, b, c):
-    pass  # Replace this with your code
-
-# Print the result
-print(solve(a, b, c))`,
+# Do not modify below this line
+if __name__ == "__main__":
+    a, b, c = map(int, input().split())
+    print(solve(a, b, c))`,
     testCases: [
       { input: "1 3 2", output: "3" },
       { input: "-1 -5 -3", output: "-1" },

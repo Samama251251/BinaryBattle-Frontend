@@ -2,18 +2,21 @@ import React, { useEffect, useState } from 'react';
 import Editor from '@monaco-editor/react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
-
 interface IDEProps {
   value: string;
   onChange: (value: string | undefined) => void;
   language: string;
   theme: string;
+  title: string;
+  difficulty: string;
+  onSubmit: () => void;
+  updateConsoleOutput: (output: string) => void;
 }
 
-const IDE = ({ value, onChange, language, theme }: IDEProps) => {
+const IDE = ({ value, onChange, language, theme, title, difficulty, onSubmit, updateConsoleOutput }: IDEProps) => {
   const { data: session, status } = useSession();
   const [editor, setEditor] = useState(null);
-  const [output, setOutput] = useState('');
+  const [consoleOutput, setConsoleOutput] = useState<string>('');
 
   const handleEditorWillMount = (monaco: any) => {
     monaco.editor.defineTheme('dracula', {
@@ -49,80 +52,87 @@ const IDE = ({ value, onChange, language, theme }: IDEProps) => {
     setEditor(editor);
   };
 
-  return (
-    <section className='bg-base-300 fixed w-full h-full'>
-      <div className='flex items-center justify-between px-4'>
-        <div className='flex items-center'>
-          <Link href='/' className='btn btn-square btn-ghost'>
-            <i className="fi fi-rr-angle-circle-left text-xl pt-2"></i>
-          </Link>
-          <h1 className='text-3xl p-4 font-bold'>Finding the Shortest Path</h1>
-          <span className='badge badge-success p-3 font-bold'>Easy</span>
-        </div>
+  const handleConsoleOutput = (output: string) => {
+    setConsoleOutput(prev => prev + '\n' + output);
+    updateConsoleOutput(output);
+  };
 
+  const clearConsole = () => {
+    setConsoleOutput('');
+    updateConsoleOutput('');
+  };
+
+  return (
+    <div className='flex flex-col h-screen'>
+      {/* Header */}
+      <div className='flex items-center justify-between p-4'>
         <div className='flex items-center gap-2'>
-          <button className='btn btn-neutral hover:btn-outline flex items-center'>
-          <i className="fi fi-br-play"></i>
-          Test
-          </button>
-          <button className='btn btn-neutral hover:btn-outline flex items-center'>
-          <i className="fi fi-rr-cloud-upload-alt"></i>
-          Submit
-          </button>
-          <button className='btn btn-circle btn-ghost'>
-            <img src={session?.user?.image || '/images/logo.png'} alt='logo' className='w-10 rounded-full' />
-          </button>
+          <h1 className='text-xl font-bold'>{title}</h1>
+          <span className={`badge ${difficulty.toLowerCase() === 'easy' ? 'badge-success' : 'badge-warning'}`}>
+            {difficulty}
+          </span>
         </div>
       </div>
-      <div className='flex flex-row w-full font-poppins h-screen p-2 bg-base-300 text-base-content font-mono'>
-        <div className='flex flex-col w-1/2 bg-base-100 py-2 rounded-lg h-5/6'>
-        <span className='w-full bg-base-200 px-4 py-2 mb-4 flex items-center justify-between relative -mt-2 rounded-lg'>
-          <b>Code</b>
-          <select
-            id="language-select"
-            className='select select-sm bg-base-200'
-            value={language}
-            onChange={(e) => onChange(e.target.value)}
+
+      {/* Main Content */}
+      <div className='flex flex-1 gap-2 p-2'>
+        {/* Editor Section */}
+        <div className='flex-1'>
+          <div className='flex justify-between items-center px-4 py-2 bg-base-300 rounded-t-lg'>
+            <span>Code</span>
+            <select
+              value={language}
+              className='select select-sm select-ghost'
             >
-            <option value="javascript">JS</option>
-            <option value="python">Python</option>
-            <option value="cpp">C++</option>
-          </select>
-          </span>
+              <option value="python">Python</option>
+              <option value="javascript">JavaScript</option>
+              <option value="cpp">C++</option>
+            </select>
+          </div>
+          
           <Editor
-            className='w-full'
+            height="calc(100vh - 200px)"
             language={language}
             value={value}
             onChange={onChange}
-            beforeMount={handleEditorWillMount}
-            onMount={handleEditorDidMount}
             theme={theme}
             options={{
-              fontSize: 16,
-              tabSize: 4,
-              quickSuggestions: true,
-              dropIntoEditor: { enabled: true },
-              autoClosingBrackets: 'always',
-              autoClosingQuotes: 'always',
-              autoIndent: 'full',
-              dragAndDrop: true,
+              fontSize: 14,
+              minimap: { enabled: false },
+              scrollBeyondLastLine: false,
             }}
-            />
+          />
         </div>
-        <div className='flex flex-col w-1/2 h-5/6 px-2 gap-4'>
-          <div className='flex flex-col h-1/2 w-full bg-base-100 rounded-lg p-4 overflow-y-auto'> 
-            Problem Statement
-          </div>
 
-          <div className='w-full h-1/2 overflow-scroll bg-base-100 rounded-md'>
-              <div className="p-4">
-                <pre className='whitespace-pre-wrap overflow-y-auto'>Terminal{">\n"}{output}</pre>
-              </div>
+        {/* Updated Terminal Section */}
+        <div className='w-[400px]'>
+          <div className='flex justify-between items-center px-4 py-2 bg-base-300 rounded-t-lg'>
+            <span>Terminal</span>
+            <button 
+              onClick={clearConsole}
+              className='btn btn-ghost btn-xs'
+            >
+              Clear
+            </button>
           </div>
+          <div className='h-[calc(100vh-300px)] bg-base-200 rounded-b-lg p-4 overflow-auto'>
+            <pre className='text-sm font-mono whitespace-pre-wrap'>
+              {consoleOutput || 'Terminal> Waiting for output...'}
+            </pre>
+          </div>
+        </div>
+      </div>
 
+      {/* Submit Button */}
+      <div className='p-2'>
+        <button 
+          onClick={onSubmit}
+          className='btn btn-primary w-full'
+        >
+          Submit Solution
+        </button>
       </div>
-      </div>
-  </section>
+    </div>
   );
 };
 

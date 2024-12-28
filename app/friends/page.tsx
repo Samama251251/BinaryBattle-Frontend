@@ -276,7 +276,7 @@ function Page() {
                     </button>
                     <Link
                       className="btn btn-square btn-secondary"
-                      href={`/message/${friend.email}`}
+                      href={`/message/${friend.email.split("@")[0]}`}
                     >
                       <i className="fi fi-rr-comment-alt text-xl"></i>
                     </Link>
