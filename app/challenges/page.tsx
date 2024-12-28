@@ -20,9 +20,11 @@ export default function ChallengesPage() {
     duration: 60// default 60 minutes
   });
   const availableProblems = [
-    { id: '1', title: 'Two Sum' },
-    { id: '2', title: 'Reverse String' },
-    { id: '3', title: 'Binary Search' },
+    { id: '1', title: 'Sum of Two Numbers' },
+    { id: '2', title: 'Even or Odd' },
+    { id: '3', title: 'Reverse String' },
+    { id: '4', title: 'Count Vowels' },
+    { id: '5', title: 'Maximum of Three Numbers' }
   ];
 
   const { data: session } = useSession();

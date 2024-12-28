@@ -234,37 +234,37 @@ export default function LobbyPage() {
   // Update toggleReady to use wsRef
   const toggleReady = async () => {
     try {
+      // Get current username consistently
+      const username = session?.user?.email?.split('@')[0];
+      if (!username) return;
+
       const response = await fetch(`http://localhost:8000/api/challenges/${params.challengeId}/ready`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ isReady: !isReady }),
+        body: JSON.stringify({ 
+          isReady: !isReady,
+          username: username
+        }),
       });
 
       if (!response.ok) {
         throw new Error('Failed to update ready status');
       }
 
+      // Update local state first
       setIsReady(!isReady);
       
+      // Send WebSocket message
       if (wsRef.current?.readyState === WebSocket.OPEN) {
         wsRef.current.send(JSON.stringify({
           type: 'ready_status',
-          email: session?.user?.email,
-          username: session?.user?.name || session?.user?.email,
+          username: username,
           isReady: !isReady
         }));
       }
 
-      // Update local challenge state
-      setChallenge(prev => {
-        if (!prev) return null;
-        const updatedParticipants = prev.participants.map(p => 
-          p.email === session?.user?.email ? { ...p, isReady: !isReady } : p
-        );
-        return { ...prev, participants: updatedParticipants };
-      });
     } catch (error) {
       console.error('Error updating ready status:', error);
       toast.error('Failed to update ready status');
