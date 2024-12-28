@@ -23,7 +23,7 @@ const IDE = ({ value, onChange, language, theme, title, difficulty, onSubmit, co
       base: 'vs-dark',
       inherit: true,
       rules: [
-        { background: '282A36' },
+        { background: '1D232A' },
         { token: 'keyword', foreground: 'FF79C6' },
         { token: 'string', foreground: 'F1FA8C' },
         { token: 'number', foreground: 'BD93F9' },
@@ -32,16 +32,17 @@ const IDE = ({ value, onChange, language, theme, title, difficulty, onSubmit, co
         { token: 'type', foreground: '8BE9FD' },
       ],
       colors: {
-        'editor.background': '#282A36',
+        'editor.background': '#1D232A',
+        'editor.foreground': '#F8F9FA',
         'editorLineNumber.foreground': '#6272A4',
         'editorCursor.foreground': '#FF79C6',
-        'editor.selectionBackground': '#44475A',
-        'editor.inactiveSelectionBackground': '#44475A99',
-        'editorIndentGuide.background': '#6272A4',
+        'editor.selectionBackground': '#2D3741',
+        'editor.inactiveSelectionBackground': '#2D374199',
+        'editorIndentGuide.background': '#2D3741',
         'editorIndentGuide.activeBackground': '#FF79C6',
-        'editor.lineHighlightBackground': '#44475A',
+        'editor.lineHighlightBackground': '#2D3741',
         'editorWhitespace.foreground': '#6272A4',
-        'editorBracketMatch.background': '#44475A',
+        'editorBracketMatch.background': '#2D3741',
         'editorBracketMatch.border': '#FF79C6',
       }
     });
@@ -61,26 +62,30 @@ const IDE = ({ value, onChange, language, theme, title, difficulty, onSubmit, co
   };
 
   return (
-    <div className='flex flex-col h-screen'>
+    <div className='flex flex-col h-screen bg-base-100'>
       {/* Header */}
-      <div className='flex items-center justify-between p-4'>
-        <div className='flex items-center gap-2'>
-          <h1 className='text-xl font-bold'>{title}</h1>
-          <span className={`badge ${difficulty.toLowerCase() === 'easy' ? 'badge-success' : 'badge-warning'}`}>
+      <div className='flex items-center justify-between p-4 border-b border-base-300'>
+        <div className='flex items-center gap-3'>
+          <h1 className='text-2xl font-bold text-primary'>{title}</h1>
+          <span className={`px-3 py-1 text-sm font-medium rounded-full ${
+            difficulty.toLowerCase() === 'easy' 
+              ? 'bg-success/20 text-success' 
+              : 'bg-warning/20 text-warning'
+          }`}>
             {difficulty}
           </span>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className='flex flex-1 gap-2 p-2'>
+      <div className='flex flex-1 gap-4 p-4'>
         {/* Editor Section */}
-        <div className='flex-1'>
-          <div className='flex justify-between items-center px-4 py-2 bg-base-300 rounded-t-lg'>
-            <span>Code</span>
+        <div className='flex-1 rounded-lg overflow-hidden border border-base-300 shadow-lg'>
+          <div className='flex justify-between items-center px-6 py-3 bg-base-200 border-b border-base-300'>
+            <span className='font-medium text-base-content'>Code Editor</span>
             <select
               value={language}
-              className='select select-sm select-ghost'
+              className='select select-sm select-bordered bg-base-100'
             >
               <option value="python">Python</option>
               <option value="javascript">JavaScript</option>
@@ -89,43 +94,66 @@ const IDE = ({ value, onChange, language, theme, title, difficulty, onSubmit, co
           </div>
           
           <Editor
-            height="calc(100vh - 200px)"
+            height="calc(100vh - 230px)"
             language={language}
             value={value}
             onChange={onChange}
             theme={theme}
             options={{
-              fontSize: 14,
+              fontSize: 15,
               minimap: { enabled: false },
               scrollBeyondLastLine: false,
+              padding: { top: 20 },
+              roundedSelection: true,
+              smoothScrolling: true,
+              cursorBlinking: "smooth",
+              cursorSmoothCaretAnimation: "on",
             }}
+            beforeMount={handleEditorWillMount}
+            onMount={handleEditorDidMount}
           />
         </div>
 
-        {/* Updated Terminal Section */}
-        <div className='w-[400px]'>
-          <div className='flex justify-between items-center px-4 py-2 bg-base-300 rounded-t-lg'>
-            <span>Terminal</span>
+        {/* Terminal Section */}
+        <div className='w-[400px] rounded-lg overflow-hidden border border-base-300 shadow-lg'>
+          <div className='flex justify-between items-center px-6 py-3 bg-base-200 border-b border-base-300'>
+            <span className='font-medium text-base-content'>Terminal</span>
             <button 
               onClick={clearConsole}
-              className='btn btn-ghost btn-xs'
+              className='btn btn-ghost btn-sm px-2 min-h-0 h-8 hover:bg-base-300'
             >
               Clear
             </button>
           </div>
-          <div className='h-[calc(100vh-300px)] bg-base-200 rounded-b-lg p-4 overflow-auto'>
-            <pre className='text-sm font-mono whitespace-pre-wrap'>
-              {consoleOutput || 'Terminal> Waiting for output...'}
-            </pre>
+          <div className='h-[calc(100vh-330px)] bg-[#1D232A] p-6 overflow-auto font-mono'>
+            {!consoleOutput ? (
+              <div className='text-sm text-base-content/70'>Terminal&gt; Ready for execution...</div>
+            ) : (
+              <pre className='text-sm leading-relaxed'>
+                {consoleOutput.split('\n').map((line, index) => {
+                  if (line.startsWith('Test Case')) {
+                    return <div key={index} className='text-base-content font-semibold mb-2'>{line}</div>;
+                  } else if (line.includes('PASSED')) {
+                    return <div key={index} className='text-success font-semibold'>{line}</div>;
+                  } else if (line.includes('FAILED')) {
+                    return <div key={index} className='text-error font-semibold'>{line}</div>;
+                  } else if (line.startsWith('Execution Time:') || line.startsWith('Memory Used:')) {
+                    return <div key={index} className='text-success font-semibold'>{line}</div>;
+                  } else {
+                    return <div key={index} className='text-base-content ml-2'>{line}</div>;
+                  }
+                })}
+              </pre>
+            )}
           </div>
         </div>
       </div>
 
       {/* Submit Button */}
-      <div className='p-2'>
+      <div className='p-4 border-t border-base-300'>
         <button 
           onClick={onSubmit}
-          className='btn btn-primary w-full'
+          className='btn btn-primary w-full h-12 text-base font-medium'
         >
           Submit Solution
         </button>
