@@ -106,58 +106,62 @@ function Page() {
   };
 
   return (
-    <section className="w-screen h-screen">
-      <div className="px-32 py-10 w-full h-full flex flex-col gap-3">
-        <h1 className="text-3xl font-bold">Chat with {friendEmail}</h1>
+    <section className="w-screen h-screen bg-base-200">
+      <div className="container mx-auto px-4 py-6 w-full h-full flex flex-col gap-4">
+        <div className="card bg-base-100 shadow-xl">
+          <div className="card-body">
+            <h1 className="card-title text-2xl">Chat with {friendEmail}</h1>
 
-        {isConnecting && <div className="loading loading-spinner loading-lg"></div>}
-        {error && <div className="alert alert-error">{error}</div>}
+            {isConnecting && <div className="loading loading-spinner loading-md"></div>}
+            {error && <div className="alert alert-error">{error}</div>}
 
-        {/* Chat Messages Area */}
-        <div className="flex-1 overflow-y-auto bg-gray-50 rounded-lg p-4">
-          <div className="flex flex-col gap-4">
-            {messages.map((msg) => (
-              <div
-                key={msg.id}
-                className={`flex ${
-                  msg.source === session?.user?.email?.split("@")[0] 
-                    ? 'justify-end' 
-                    : 'justify-start'
-                }`}
-              >
-                <div
-                  className={`max-w-[70%] rounded-lg p-3 ${
-                    msg.source === session?.user?.email?.split("@")[0]
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-gray-200 text-gray-800'
-                  }`}
-                >
-                  <div className="text-xs opacity-75 mb-1">{msg.source}</div>
-                  {msg.text}
-                </div>
+            {/* Chat Messages Area */}
+            <div className="flex-1 overflow-y-auto min-h-[60vh] max-h-[60vh] rounded-lg">
+              <div className="flex flex-col gap-3">
+                {messages.map((msg) => (
+                  <div
+                    key={msg.id}
+                    className={`flex ${
+                      msg.source === session?.user?.email?.split("@")[0] 
+                        ? 'justify-end' 
+                        : 'justify-start'
+                    }`}
+                  >
+                    <div
+                      className={`max-w-[70%] rounded-lg p-3 ${
+                        msg.source === session?.user?.email?.split("@")[0]
+                          ? 'bg-primary text-primary-content'
+                          : 'bg-base-300 text-base-content'
+                      }`}
+                    >
+                      <div className="text-xs opacity-70 mb-1">{msg.source}</div>
+                      {msg.text}
+                    </div>
+                  </div>
+                ))}
+                <div ref={messagesEndRef} />
               </div>
-            ))}
-            <div ref={messagesEndRef} />
-          </div>
-        </div>
+            </div>
 
-        {/* Message Input Area */}
-        <div className="flex gap-2">
-          <textarea
-            className="flex-1 textarea textarea-bordered"
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Type your message..."
-            rows={2}
-          />
-          <button
-            className="btn btn-primary"
-            onClick={sendMessage}
-            disabled={!message.trim() || isConnecting}
-          >
-            Send
-          </button>
+            {/* Message Input Area */}
+            <div className="flex gap-2 mt-4">
+              <textarea
+                className="flex-1 textarea textarea-bordered textarea-primary min-h-[5rem]"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="Type your message..."
+                rows={2}
+              />
+              <button
+                className="btn btn-primary"
+                onClick={sendMessage}
+                disabled={!message.trim() || isConnecting}
+              >
+                Send
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </section>
