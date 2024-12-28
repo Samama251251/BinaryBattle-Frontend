@@ -10,13 +10,13 @@ interface IDEProps {
   title: string;
   difficulty: string;
   onSubmit: () => void;
-  updateConsoleOutput: (output: string) => void;
+  consoleOutput: string;
+  setConsoleOutput: (output: string) => void;
 }
 
-const IDE = ({ value, onChange, language, theme, title, difficulty, onSubmit, updateConsoleOutput }: IDEProps) => {
+const IDE = ({ value, onChange, language, theme, title, difficulty, onSubmit, consoleOutput, setConsoleOutput }: IDEProps) => {
   const { data: session, status } = useSession();
   const [editor, setEditor] = useState(null);
-  const [consoleOutput, setConsoleOutput] = useState<string>('');
 
   const handleEditorWillMount = (monaco: any) => {
     monaco.editor.defineTheme('dracula', {
@@ -53,13 +53,11 @@ const IDE = ({ value, onChange, language, theme, title, difficulty, onSubmit, up
   };
 
   const handleConsoleOutput = (output: string) => {
-    setConsoleOutput(prev => prev + '\n' + output);
-    updateConsoleOutput(output);
+    setConsoleOutput(output);
   };
 
   const clearConsole = () => {
     setConsoleOutput('');
-    updateConsoleOutput('');
   };
 
   return (

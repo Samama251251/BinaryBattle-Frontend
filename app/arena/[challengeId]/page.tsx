@@ -415,7 +415,8 @@ ${result.stderr ? `Error: ${result.stderr}` : ""}`;
           title={challenge.title}
           difficulty={challenge.problemDetails.difficulty}
           onSubmit={handleSubmit}
-          updateConsoleOutput={setConsoleOutput}
+          consoleOutput={consoleOutput}
+          setConsoleOutput={setConsoleOutput}
         />
         <div className="p-4 bg-base-300">
           <button
