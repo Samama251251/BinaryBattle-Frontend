@@ -144,16 +144,9 @@ export default function LobbyPage() {
           status: 'starting'
         } : null);
 
-        let count = 5;
-        setCountdown(count);
-        const timer = setInterval(() => {
-          count--;
-          setCountdown(count);
-          if (count === 0) {
-            clearInterval(timer);
-            router.push(`/challenges/${params.challengeId}/solve`);
-          }
-        }, 1000);
+        if (!data.isInitiator) {
+          router.push(`/arena/${params.challengeId}/`);
+        }
         break;
     }
   }, [router, params.challengeId]);
@@ -287,21 +280,26 @@ export default function LobbyPage() {
       if (wsRef.current?.readyState === WebSocket.OPEN) {
         wsRef.current.send(JSON.stringify({
           type: 'challenge_start',
-          startTime: new Date().toISOString()
+          startTime: new Date().toISOString(),
+          isInitiator: true
         }));
       }
 
-      // Start countdown
-      let count = 5;
-      setCountdown(count);
+      // Handle countdown only for the initiator
+      const countRef = { current: 5 };
+      setCountdown(countRef.current);
+      
       const timer = setInterval(() => {
-        count--;
-        setCountdown(count);
-        if (count === 0) {
+        countRef.current -= 1;
+        setCountdown(countRef.current);
+        
+        if (countRef.current === 0) {
           clearInterval(timer);
-          router.push(`/challenges/${params.challengeId}/solve`);
+          router.push(`/arena/${params.challengeId}/`);
         }
       }, 1000);
+
+      return () => clearInterval(timer);
     } catch (error) {
       console.error('Error starting challenge:', error);
       toast.error('Failed to start challenge');
@@ -425,10 +423,10 @@ export default function LobbyPage() {
             
             <button 
               className="btn btn-primary btn-block"
-              disabled={!allReady || countdown !== null || !isCreator}
+              disabled={!allReady || countdown !== null}
               onClick={startChallenge}
             >
-              {isCreator ? 'Start Challenge' : 'Waiting for host...'}
+              Start Challenge
             </button>
           </div>
         </div>

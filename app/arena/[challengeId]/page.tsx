@@ -50,6 +50,7 @@ export default function ArenaPage() {
   const [consoleOutput, setConsoleOutput] = useState<string>("");
   const [consoleLoading, setConsoleLoading] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [ws, setWs] = useState<WebSocket | null>(null);
 
   // Fetch challenge details
   useEffect(() => {
@@ -125,22 +126,103 @@ export default function ArenaPage() {
     return () => clearInterval(timer);
   }, [challenge]);
 
+  // WebSocket connection
+  useEffect(() => {
+    if (!session?.user?.email || !params.challengeId) return;
+
+    const websocket = new WebSocket(
+      `ws://localhost:8000/ws/challenge/arena/${params.challengeId}/${session.user.email.split("@")[0]}/`
+    );
+
+    websocket.onopen = () => {
+      console.log("Connected to WebSocket");
+      // No need to send initial connection message as user details are now in URL
+    };
+
+    websocket.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+
+      switch (data.type) {
+        case "submission_update":
+          // Show submission notification
+          console.log("I am 1st one you want to see")
+
+            if (data.status === 'submitted') {
+              console.log("I am 2nd one you want to see")
+              toast.loading(`${data.username} submitted their solution. Checking test cases...`, {duration: 10000});
+            }
+            
+            // Update participants list when someone submits
+            setChallenge((prev) => {
+              if (!prev) return prev;
+              return {
+                ...prev,
+                participants: prev.participants.map((p) =>
+                  p.username === data.username 
+                    ? { ...p, submissionTime: new Date().toISOString() } 
+                    : p
+                ),
+              };
+            });
+          
+          break;
+
+        case "challenge_winner":
+          // Show winner notification
+          if (data.challengeId === params.challengeId) {
+            const winner = challenge?.participants.find(
+              (p) => p.username === data.username
+            );
+            toast.success(
+              `${winner?.username || "Someone"} has won the challenge!`
+            );
+          }
+          break;
+      }
+    };
+
+    websocket.onclose = () => {
+      console.log("Disconnected from WebSocket");
+    };
+
+    websocket.onerror = (error) => {
+      console.error("WebSocket error:", error);
+    };
+
+    setWs(websocket);
+
+    // Cleanup on unmount
+    return () => {
+      websocket.close();
+    };
+  }, [session?.user?.email, params.challengeId]);
+
   const handleSubmit = async () => {
-    if (!challenge || !session?.user?.email) return;
+    if (!challenge || !session?.user?.email || !ws) return;
 
     setSubmitting(true);
     setIsProcessing(true);
     setConsoleLoading(true);
-    setConsoleOutput("Running your code...");  // Initial loading message
-    
+    setConsoleOutput("Running your code...");
+
     try {
+      // Notify others about new submission
+      ws.send(
+        JSON.stringify({
+          type: "new_submission",
+          data: {
+            challengeId: challenge.id,
+            username: session.user.email.split("@")[0],
+          },
+        })
+      );
+
       // Get the problem details and test cases
       const problem = problems.find((p) => p.id === challenge.problemId);
       if (!problem) {
         throw new Error("Problem details not found");
       }
 
-      
       // Submit code with test cases
       const submitResponse = await fetch(
         "http://localhost:8000/api/submissions",
@@ -178,16 +260,18 @@ export default function ArenaPage() {
           `http://localhost:8000/api/submissions?token=${token}`
         );
         result = await statusResponse.json();
-        
+
         // Update loading message with animated dots
         dots = dots.length >= 3 ? "" : dots + ".";
-        setConsoleOutput(`Running your code${dots}\nPlease wait while we process your submission`);
-        
+        setConsoleOutput(
+          `Running your code${dots}\nPlease wait while we process your submission`
+        );
       } while (result.status?.id === 1 || result.status?.id === 2);
 
       // Handle submission results
-      if (result.status?.id === 3) { // Accepted
-        const output = result.stdout?.trim() || '';
+      if (result.status?.id === 3) {
+        // Accepted
+        const output = result.stdout?.trim() || "";
         const expectedOutput = problem.testCases[0].output.trim();
         const passed = output === expectedOutput;
 
@@ -206,9 +290,28 @@ ${result.stderr ? `Error: ${result.stderr}` : ""}`;
         } else {
           toast.error("Output doesn't match expected result");
         }
+
+        // After successful submission
+        if (passed) {
+          ws.send(
+            JSON.stringify({
+              type: "submission_completed",
+              data: {
+                challengeId: challenge.id,
+                userEmail: session.user.email,
+                score: result.time, // or whatever scoring metric you use
+                status: "completed",
+              },
+            })
+          );
+        }
       } else {
         // Handle compilation/runtime errors
-        const errorMessage = result.stderr || result.compile_output || result.message || "An unknown error occurred";
+        const errorMessage =
+          result.stderr ||
+          result.compile_output ||
+          result.message ||
+          "An unknown error occurred";
         setConsoleOutput(errorMessage);
         toast.error("Execution failed");
       }
@@ -216,7 +319,8 @@ ${result.stderr ? `Error: ${result.stderr}` : ""}`;
       console.error("Error submitting code:", error);
       toast.error("Error submitting code");
       setConsoleOutput(
-        (error as Error).message || "An error occurred while submitting your code"
+        (error as Error).message ||
+          "An error occurred while submitting your code"
       );
     } finally {
       setSubmitting(false);
@@ -254,7 +358,9 @@ ${result.stderr ? `Error: ${result.stderr}` : ""}`;
         <div className="absolute inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
           <div className="bg-base-200 p-8 rounded-lg flex flex-col items-center gap-4">
             <span className="loading loading-spinner loading-lg"></span>
-            <p className="text-lg font-semibold">Processing your submission...</p>
+            <p className="text-lg font-semibold">
+              Processing your submission...
+            </p>
           </div>
         </div>
       )}
@@ -317,7 +423,7 @@ ${result.stderr ? `Error: ${result.stderr}` : ""}`;
             onClick={handleSubmit}
             disabled={submitting || isProcessing}
           >
-            {(submitting || isProcessing) ? (
+            {submitting || isProcessing ? (
               <span className="flex items-center justify-center gap-2">
                 <span className="loading loading-spinner loading-sm"></span>
                 Processing...
