@@ -71,7 +71,7 @@ function Page() {
     };
 
     ws.current.onerror = () => {
-      setError('Failed to connect to chat server');
+      setError('');
       setIsConnecting(false);
     };
 

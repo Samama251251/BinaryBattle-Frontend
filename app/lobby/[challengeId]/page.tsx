@@ -336,6 +336,7 @@ export default function LobbyPage() {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold">{challenge.title}</h1>
+        <h2 className="text-xl font-semibold text-gray-500">Challenge ID: {challenge.id}</h2>
         <div className="flex items-center gap-4 text-gray-500 mt-2">
           <span className="flex items-center gap-2">
             <FiUsers />
@@ -365,15 +366,6 @@ export default function LobbyPage() {
                   <p><strong>Explanation:</strong> {example.explanation}</p>
                 </div>
               ))}
-            </div>
-
-            <div>
-              <h3 className="font-semibold mb-2">Constraints:</h3>
-              <ul className="list-disc list-inside">
-                {challenge.problemDetails.constraints.map((constraint, index) => (
-                  <li key={index}>{constraint}</li>
-                ))}
-              </ul>
             </div>
           </div>
         </div>
