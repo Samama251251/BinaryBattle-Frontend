@@ -286,14 +286,15 @@ export default function LobbyPage() {
       }
 
       // Handle countdown only for the initiator
-      const countRef = { current: 5 };
+      // Start with 3 seconds for a proper countdown from 3,2,1
+      const countRef = { current: 3 }; 
       setCountdown(countRef.current);
       
       const timer = setInterval(() => {
         countRef.current -= 1;
         setCountdown(countRef.current);
         
-        if (countRef.current === 0) {
+        if (countRef.current <= 0) { // Use <= to ensure we don't miss the condition
           clearInterval(timer);
           router.push(`/arena/${params.challengeId}/`);
         }

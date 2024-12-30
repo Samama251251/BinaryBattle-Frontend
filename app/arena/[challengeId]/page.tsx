@@ -114,6 +114,12 @@ export default function ArenaPage() {
       if (remaining <= 0) {
         setTimeLeft(0);
         // Auto-submit logic here
+        toast.error("Time's up! Challenge ended.", {
+          duration: 3000
+        });
+        setTimeout(() => {
+          router.push('/');
+        }, 3000);
         return;
       }
 
@@ -151,10 +157,9 @@ export default function ArenaPage() {
 
           if (data.status === "submitted") {
             console.log("I am 2nd one you want to see");
-            toast.loading(
-              `${data.username} submitted their solution. Checking test cases...`,
-              { duration: 10000 }
-            );
+            toast(`${data.username} submitted their solution. Checking test cases...`, {
+              duration: 3000
+            });
           }
 
           // Update participants list when someone submits
@@ -299,7 +304,7 @@ ${result.stderr ? `Error: ${result.stderr}` : ""}`;
         setConsoleOutput(testCaseOutput);
 
         if (passed) {
-          toast.success("Solution accepted!");
+          toast.success("Solution accepted! You are the winner!");
         } else {
           toast.error("Output doesn't match expected result");
         }
@@ -317,6 +322,15 @@ ${result.stderr ? `Error: ${result.stderr}` : ""}`;
             })
           );
         }
+      // After successful submission and sending WebSocket message,
+      // redirect to home page after 10 seconds
+      if (passed) {
+        toast.success("You are the winner!");
+        setTimeout(() => {
+          router.push('/');
+        }, 10000);
+      }
+
       } else {
         // Handle compilation/runtime errors
         const errorMessage =
