@@ -322,6 +322,33 @@ ${result.stderr ? `Error: ${result.stderr}` : ""}`;
             })
           );
         }
+      // Update user's score
+      if (passed) {
+        try {
+          console.log("I am here to update the score")
+          const scoreResponse = await fetch('http://localhost:8000/api/updateScore', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              username: session.user.email.split('@')[0]
+            })
+          });
+
+          const scoreData = await scoreResponse.json();
+          
+          if (scoreResponse.ok) {
+            toast.success(`Score updated! New score: ${scoreData.new_score}`);
+          } else {
+            console.error('Error updating score:', scoreData.error);
+            toast.error('Failed to update score');
+          }
+        } catch (error) {
+          console.error('Error updating score:', error);
+          toast.error('Failed to update score');
+        }
+      }
       // After successful submission and sending WebSocket message,
       // redirect to home page after 10 seconds
       if (passed) {
