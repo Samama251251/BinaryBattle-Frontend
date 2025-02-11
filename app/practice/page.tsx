@@ -1,7 +1,7 @@
 'use client';
 import React from 'react'
-import Editor from '../components/Editor';
-import Sidebar from '../components/Sidebar';
+// import Editor from '../components/Editor';
+// import Sidebar from '../components/Sidebar';
 
 function page() {
 return (

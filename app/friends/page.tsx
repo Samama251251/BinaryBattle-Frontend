@@ -25,7 +25,7 @@ function Page() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { data: session } = useSession();
   const [hasSearched, setHasSearched] = useState<boolean>(false);
-  const [friendRequests, setFriendRequests] = useState<FriendRequest[]>([]);
+
   // Fetch friends on component mount
   useEffect(() => {
     const fetchFriends = async () => {
@@ -45,7 +45,6 @@ function Page() {
       } catch (error) {
         console.error("Error fetching friends:", error);
       } finally {
-        ``;
         setIsLoading(false);
       }
     };
@@ -167,11 +166,11 @@ function Page() {
               <i className="fi fi-rr-bell"></i>
               Friend Requests
               {/* Optional: Add a badge if there are pending requests */}
-              {friendRequests.length > 0 && (
+              {/* {friendRequests.length > 0 && (
                 <div className="badge badge-secondary">
                   {friendRequests.length}
                 </div>
-              )}
+              )} */}
             </Link>
           </div>
         </div>
@@ -232,7 +231,7 @@ function Page() {
                 ))
               ) : (
                 <p className="text-center text-gray-500">
-                  No users found matching "{searchQuery}"
+                  No users found matching &quot;{searchQuery}&quot;
                 </p>
               )}
             </div>

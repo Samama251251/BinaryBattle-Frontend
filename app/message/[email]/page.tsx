@@ -28,7 +28,7 @@ function Page() {
     if (!session || !session.user?.email) {
       console.log('Session not loaded yet or no user email');
       return;
-    }``
+    }
 
     const currentUsername = session.user.email.split("@")[0];
     const friendUsername = friendEmail.split("@")[0];

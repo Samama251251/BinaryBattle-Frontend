@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import Editor from '@monaco-editor/react';
-import { useSession } from 'next-auth/react';
-import Link from 'next/link';
+
 interface IDEProps {
   value: string;
   onChange: (value: string | undefined) => void;
@@ -15,10 +14,7 @@ interface IDEProps {
 }
 
 const IDE = ({ value, onChange, language, theme, title, difficulty, onSubmit, consoleOutput, setConsoleOutput }: IDEProps) => {
-  const { data: session, status } = useSession();
-  const [editor, setEditor] = useState(null);
-
-  const handleEditorWillMount = (monaco: any) => {
+  const handleEditorWillMount = (monaco: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
     monaco.editor.defineTheme('dracula', {
       base: 'vs-dark',
       inherit: true,
@@ -47,14 +43,6 @@ const IDE = ({ value, onChange, language, theme, title, difficulty, onSubmit, co
       }
     });
     monaco.editor.setTheme('dracula');
-  };
-
-  const handleEditorDidMount = (editor: any, monaco: any) => {
-    setEditor(editor);
-  };
-
-  const handleConsoleOutput = (output: string) => {
-    setConsoleOutput(output);
   };
 
   const clearConsole = () => {
@@ -110,7 +98,6 @@ const IDE = ({ value, onChange, language, theme, title, difficulty, onSubmit, co
               cursorSmoothCaretAnimation: "on",
             }}
             beforeMount={handleEditorWillMount}
-            onMount={handleEditorDidMount}
           />
         </div>
 

@@ -1,17 +1,10 @@
 import type { Metadata } from "next";
-import {IBM_Plex_Mono} from "next/font/google";
 import "./globals.css";
 import SessionWrapper from "./components/SessionWrapper";
 import Sidebar from "./components/Sidebar";
 import { WebSocketProvider } from "./contexts/WebSocketContext";
-import Header from "./components/Header";
 import { Toaster } from "react-hot-toast";
-const IBM_Plex = IBM_Plex_Mono({
-  subsets: ["latin"],
-  weight: ['400', '700'],
-  display: "swap",
-  variable: '--font-plex',
-});
+
 
 export const metadata: Metadata = {
   title: "Create Next App",

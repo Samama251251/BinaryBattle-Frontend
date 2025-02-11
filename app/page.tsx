@@ -2,11 +2,7 @@
 import React from 'react'
 import Link from 'next/link'
 
-import { useSession } from 'next-auth/react'
-
 function Page() {
-  const { data: session } = useSession()
-
   return (
     <section className='w-full min-h-screen bg-base-100 font-mono flex flex-col'>
       <div className='flex-1 flex flex-col items-center justify-center px-4 text-center'>

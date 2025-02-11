@@ -2,7 +2,7 @@
 import React from 'react'
 import { useSession } from 'next-auth/react'
 
-function page() {
+function Page() {
 const {data : session} =  useSession()
 return (
     <section className='w-screen h-screen bg-base-100 font-mono'>
@@ -12,4 +12,4 @@ return (
     </section>
 )
 }
-export default page
+export default Page

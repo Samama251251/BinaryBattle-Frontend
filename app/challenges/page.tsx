@@ -54,6 +54,7 @@ export default function ChallengesPage() {
 
       router.push(`/lobby/${challengeId}`);
     } catch (error) {
+      console.log(error)
       toast.error("Challenge not found", {
         duration: 3000,
         position: "bottom-right",

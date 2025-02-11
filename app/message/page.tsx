@@ -44,8 +44,10 @@ function Page() {
 
 const sendMessage = () => {
   if (ws.current && message.trim()) {
-    const userMessage = { id: uuidv4(), text: message, source: 'user' as 'user' };
-    
+
+
+    const userMessage = { id: uuidv4(), text: message, source: 'user' as const };
+
     // Send message with unique ID to the server
     ws.current.send(JSON.stringify(userMessage));
 

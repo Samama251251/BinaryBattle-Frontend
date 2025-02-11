@@ -99,7 +99,7 @@ const Page = () => {
                 </div>
                 <div className="flex items-center space-x-3 text-gray-400">
                   <RiSwordLine className="text-blue-500 text-xl" />
-                  <span>Let's Code Together</span>
+                  <span>Let&apos;s Code Together</span>
                 </div>
               </div>
             </div>

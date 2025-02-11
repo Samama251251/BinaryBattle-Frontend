@@ -13,7 +13,7 @@ export const authOptions = {
     }),
   ],
   callbacks: {
-    async signIn({ user, account, profile }) {
+    async signIn({ user }) {
       if (!user?.email) {
         console.error("User email is not available");
         return false;
@@ -45,7 +45,7 @@ export const authOptions = {
       }
     },
 
-    async session({ session, token, user }) {
+    async session({ session }) {
       if (session?.user?.email) {
         try {
           const existingUser = await prisma.api_user.findUnique({
@@ -68,7 +68,7 @@ export const authOptions = {
       return session;
     },
 
-    async redirect({ url, baseUrl }) {
+    async redirect({ baseUrl }) {
       return `${baseUrl}`;
     },
   },
