@@ -4,8 +4,8 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-
-export const authOptions = {
+// Remove the export keyword from authOptions
+const authOptions = {
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID,
@@ -29,7 +29,7 @@ export const authOptions = {
           const username = user.email.split("@")[0];
           await prisma.api_user.create({
             data: {
-              username: username, // This is the @id field
+              username: username,
               email: user.email,
               name: user.name || username,
               rank: "Newbie",
@@ -37,14 +37,12 @@ export const authOptions = {
             },
           });
         }
-
         return true;
       } catch (error) {
         console.error("Error checking or creating user:", error);
         return false;
       }
     },
-
     async session({ session }) {
       if (session?.user?.email) {
         try {
@@ -57,7 +55,6 @@ export const authOptions = {
           if (existingUser) {
             session.user.username = existingUser.username;
             session.user.name = existingUser.name;
-            // Add additional fields you want to include in the session
             session.user.rank = existingUser.rank;
             session.user.score = existingUser.score;
           }
@@ -67,7 +64,6 @@ export const authOptions = {
       }
       return session;
     },
-
     async redirect({ baseUrl }) {
       return `${baseUrl}`;
     },

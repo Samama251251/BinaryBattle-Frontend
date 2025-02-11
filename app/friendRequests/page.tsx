@@ -13,6 +13,16 @@ interface FriendRequest {
   senderEmail: string;
 }
 
+// Add interface for API response
+interface APIFriendRequest {
+  id: number;
+  status: 'pending' | 'accepted' | 'rejected';
+  created_at: string;
+  sender_details: {
+    email: string;
+  };
+}
+
 function FriendRequestsPage() {
   const [friendRequests, setFriendRequests] = useState<FriendRequest[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -28,8 +38,8 @@ function FriendRequestsPage() {
         );
         if (response.ok) {
           const data = await response.json();
-          // Transform the API response to match our FriendRequest interface
-          const transformedData: FriendRequest[] = data.map((request: any) => ({
+          // Transform the API response using the proper type
+          const transformedData: FriendRequest[] = data.map((request: APIFriendRequest) => ({
             id: request.id.toString(),
             senderUserName: request.sender_details.email.split("@")[0],
             status: request.status,

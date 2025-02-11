@@ -6,6 +6,11 @@ import { FiUsers, FiClock, FiCheckCircle, FiXCircle } from 'react-icons/fi';
 import { toast } from 'react-hot-toast';
 import { problems } from '@/app/problems/problems';
 
+type WebSocketMessage = 
+  | { type: 'ready_status_update'; username: string; isReady: boolean }
+  | { type: 'user_join_leave'; action: 'joined' | 'left'; username: string }
+  | { type: 'challenge_started'; startTime: string; isInitiator: boolean };
+
 interface Participant {
   email: string;
   username: string;
@@ -37,15 +42,15 @@ interface Challenge {
 }
 
 const getProblemDetails = (problemId: string) => {
-  
-  console.log('Available problems:', problems);
-  console.log('Looking for problem with ID:', problemId);
   const problem = problems.find(p => p.id === problemId);
-  console.log('Found problem:', problem);
   return problem;
 };
 
-function useWebSocket(challengeId: string, userEmail: string | null, onMessage: (data: any) => void) {
+function useWebSocket(
+  challengeId: string, 
+  userEmail: string | null, 
+  onMessage: (data: WebSocketMessage) => void
+) {
   const wsRef = useRef<WebSocket | null>(null);
   
   useEffect(() => {
@@ -60,7 +65,7 @@ function useWebSocket(challengeId: string, userEmail: string | null, onMessage: 
     };
 
     ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
+      const data: WebSocketMessage = JSON.parse(event.data);
       onMessage(data);
     };
 
@@ -92,12 +97,9 @@ export default function LobbyPage() {
   const [loading, setLoading] = useState(true);
   const [isReady, setIsReady] = useState(false);
   const [countdown, setCountdown] = useState<number | null>(null);
-  const messageHandlerRef = useRef<(data: any) => void>();
+  const messageHandlerRef = useRef<(data: WebSocketMessage) => void>();
   
-  // Store message handler in ref to keep it stable
-  messageHandlerRef.current = useCallback((data: any) => {
-    console.log('WebSocket message received:', data);
-
+  messageHandlerRef.current = useCallback((data: WebSocketMessage) => {
     switch (data.type) {
       case 'ready_status_update':
         setChallenge(prev => {
@@ -151,7 +153,6 @@ export default function LobbyPage() {
     }
   }, [router, params.challengeId]);
 
-  // Use the custom hook with stable message handler
   const wsRef = useWebSocket(
     params.challengeId as string,
     session?.user?.email ?? null,
@@ -159,6 +160,8 @@ export default function LobbyPage() {
       messageHandlerRef.current?.(data);
     }, [])
   );
+
+  // ... rest of the component remains the same ...
 
   useEffect(() => {
     const fetchChallenge = async () => {

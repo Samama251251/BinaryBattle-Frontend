@@ -29,7 +29,6 @@ model api_user {
   message_read_status        MessageReadStatus[]
 
   @@map("api_user")
-  @@orderBy([created_at])
 }
 
 model Friendship {
