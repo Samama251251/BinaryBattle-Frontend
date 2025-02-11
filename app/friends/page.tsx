@@ -11,12 +11,7 @@ interface User {
   score: number;
   rank: string;
 }
-interface FriendRequest {
-  id: string;
-  senderEmail: string;
-  status: 'pending' | 'accepted' | 'rejected';
-  createdAt: string;
-}
+
 function Page() {
   // State management
   const [searchQuery, setSearchQuery] = useState<string>("");

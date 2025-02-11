@@ -48,7 +48,6 @@ export default function ArenaPage() {
   const [submitting, setSubmitting] = useState(false);
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
   const [consoleOutput, setConsoleOutput] = useState<string>("");
-  const [consoleLoading, setConsoleLoading] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [ws, setWs] = useState<WebSocket | null>(null);
 
@@ -220,7 +219,6 @@ export default function ArenaPage() {
 
     setSubmitting(true);
     setIsProcessing(true);
-    setConsoleLoading(true);
     setConsoleOutput("Running your code...");
 
     try {
@@ -378,7 +376,6 @@ ${result.stderr ? `Error: ${result.stderr}` : ""}`;
     } finally {
       setSubmitting(false);
       setIsProcessing(false);
-      setConsoleLoading(false);
     }
   };
 
