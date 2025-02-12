@@ -34,7 +34,7 @@ function FriendRequestsPage() {
       try {
         setIsLoading(true);
         const response = await fetch(
-          `http://localhost:8000/api/friendRequests?email=${session.user.email}`
+          `http://3.224.195.199/api/friendRequests?email=${session.user.email}`
         );
         if (response.ok) {
           const data = await response.json();
@@ -63,7 +63,7 @@ function FriendRequestsPage() {
     if (!request) return;
 
     try {
-      const response = await fetch(`http://localhost:8000/api/friendRequests`, {
+      const response = await fetch(`http://3.224.195.199/api/friendRequests`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

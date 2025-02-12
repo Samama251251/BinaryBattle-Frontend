@@ -39,7 +39,7 @@ function Page() {
     
     console.log('Room ID:', roomId);
     
-    ws.current = new WebSocket(`ws://localhost:8000/ws/chat/${roomId}/`);
+    ws.current = new WebSocket(`ws://3.224.195.199/ws/chat/${roomId}/`);
 
     ws.current.onopen = () => {
       console.log('Connected to WebSocket');

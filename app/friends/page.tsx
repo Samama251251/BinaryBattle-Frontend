@@ -29,7 +29,7 @@ function Page() {
       try {
         setIsLoading(true);
         const response = await fetch(
-          `http://localhost:8000/api/friendship?username=${
+          `http://3.224.195.199/api/friendship?username=${
             session?.user?.email.split("@")[0]
           }`
         );
@@ -58,7 +58,7 @@ function Page() {
     try {
       setIsLoading(true);
       const response = await fetch(
-        `http://localhost:8000/api/users?username=${encodeURIComponent(
+        `http://3.224.195.199/api/users?username=${encodeURIComponent(
           searchQuery
         )}`
       );
@@ -82,7 +82,7 @@ function Page() {
     if (!session?.user?.email) return;
 
     try {
-      const response = await fetch("http://localhost:8000/api/friendship", {
+      const response = await fetch("http://3.224.195.199/api/friendship", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -127,7 +127,7 @@ function Page() {
   const removeFriend = async (friendEmail: string) => {
     if (!session?.user?.email) return;
     try {
-      const response = await fetch("http://localhost:8000/api/friends/remove", {
+      const response = await fetch("http://3.224.195.199/api/friends/remove", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

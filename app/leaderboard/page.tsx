@@ -16,7 +16,7 @@ export default function LeaderboardPage() {
   useEffect(() => {
     const fetchScores = async () => {
       try {
-        const response = await fetch('http://localhost:8000/api/updateScore');
+        const response = await fetch('http://3.224.195.199/api/updateScore');
         if (!response.ok) {
           throw new Error('Failed to fetch scores');
         }
