@@ -56,7 +56,7 @@ export default function ArenaPage() {
     const fetchChallenge = async () => {
       try {
         const response = await fetch(
-          `http://3.224.195.199/api/challenges/${params.challengeId}`
+          `https://samama.live/api/challenges/${params.challengeId}`
         );
         if (!response.ok) {
           throw new Error("Challenge not found");
@@ -136,7 +136,7 @@ export default function ArenaPage() {
     if (!session?.user?.email || !params.challengeId) return;
 
     const websocket = new WebSocket(
-      `ws://3.224.195.199/ws/challenge/arena/${params.challengeId}/${
+      `wss://samama.live/ws/challenge/arena/${params.challengeId}/${
         session.user.email.split("@")[0]
       }/`
     );
@@ -241,7 +241,7 @@ export default function ArenaPage() {
 
       // Submit code with test cases
       const submitResponse = await fetch(
-        "http://3.224.195.199/api/submissions",
+        "https://samama.live/api/submissions",
         {
           method: "POST",
           headers: {
@@ -273,7 +273,7 @@ export default function ArenaPage() {
       do {
         await new Promise((resolve) => setTimeout(resolve, 1000));
         const statusResponse = await fetch(
-          `http://3.224.195.199/api/submissions?token=${token}`
+          `https://samama.live/api/submissions?token=${token}`
         );
         result = await statusResponse.json();
 
@@ -324,7 +324,7 @@ ${result.stderr ? `Error: ${result.stderr}` : ""}`;
       if (passed) {
         try {
           console.log("I am here to update the score")
-          const scoreResponse = await fetch('http://3.224.195.199/api/updateScore', {
+          const scoreResponse = await fetch('https://samama.live/api/updateScore', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'

@@ -57,7 +57,7 @@ function useWebSocket(
     if (!challengeId || !userEmail) return;
 
     const username = encodeURIComponent(userEmail.split('@')[0]);
-    const ws = new WebSocket(`ws://3.224.195.199/ws/challenge/lobby/${challengeId}/${username}/`);
+    const ws = new WebSocket(`wss://samama.live/ws/challenge/lobby/${challengeId}/${username}/`);
     wsRef.current = ws;
 
     ws.onopen = () => {
@@ -167,7 +167,7 @@ export default function LobbyPage() {
     const fetchChallenge = async () => {
       try {
         console.log('Fetching challenge with ID:', params.challengeId);
-        const response = await fetch(`http://3.224.195.199/api/challenges/${params.challengeId}`);
+        const response = await fetch(`https://samama.live/api/challenges/${params.challengeId}`);
         if (!response.ok) {
           throw new Error('Challenge not found');
         }
@@ -234,7 +234,7 @@ export default function LobbyPage() {
       const username = session?.user?.email?.split('@')[0];
       if (!username) return;
 
-      const response = await fetch(`http://3.224.195.199/api/challenges/${params.challengeId}/ready`, {
+      const response = await fetch(`https://samama.live/api/challenges/${params.challengeId}/ready`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -272,7 +272,7 @@ export default function LobbyPage() {
     if (!challenge) return;
     
     try {
-      const response = await fetch(`http://3.224.195.199/api/challenges/${params.challengeId}/start`, {
+      const response = await fetch(`https://samama.live/api/challenges/${params.challengeId}/start`, {
         method: 'POST',
       });
 

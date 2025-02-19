@@ -46,7 +46,7 @@ export default function ChallengesPage() {
     }
 
     try {
-      const response = await fetch(`http://3.224.195.199/api/challenges/${challengeId}`);
+      const response = await fetch(`https://samama.live/api/challenges/${challengeId}`);
       
       if (!response.ok) {
         throw new Error('Challenge not found');
@@ -91,7 +91,7 @@ export default function ChallengesPage() {
         createdBy: session?.user?.email || '',
       };
 
-      const response = await fetch("http://3.224.195.199/api/challenges/create", {
+      const response = await fetch("https://samama.live/api/challenges/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

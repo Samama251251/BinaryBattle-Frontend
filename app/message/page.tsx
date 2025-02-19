@@ -9,7 +9,7 @@ function Page() {
   const ws = useRef<WebSocket | null>(null);
 
   useEffect(() => {
-    ws.current = new WebSocket('ws://3.224.195.199/ws/chat/room2/');
+    ws.current = new WebSocket('wss://samama.live/ws/chat/room2/');
 
     ws.current.onopen = () => {
       console.log('Connected to WebSocket');

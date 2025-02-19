@@ -17,7 +17,7 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
     if (!session?.user?.email) return;
 
     // Create WebSocket connection
-    const ws = new WebSocket(`ws://3.224.195.199/ws/chat/online/${session.user?.email.split('@')[0]}/`);
+    const ws = new WebSocket(`wss://samama.live/ws/chat/online/${session.user?.email.split('@')[0]}/`);
     console.log(ws);
     ws.onopen = () => {
       console.log('Connected to WebSocket');
